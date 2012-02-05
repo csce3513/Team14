@@ -16,3 +16,4 @@ tba
 
 - [LibGDX](http://code.google.com/p/libgdx/)
 - Razorback sprites from [Heroes of Might and Magic 2](http://www.spriters-resource.com/pc_computer/heroesofmightandmagic2/sheet/41775)
+- Inspiration from [Robot Unicorn Attack](http://games.adultswim.com/robot-unicorn-attack-twitchy-online-game.html)
