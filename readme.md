@@ -14,5 +14,5 @@ tba
 
 ## Credits
 
-[LibGDX](http://code.google.com/p/libgdx/)
-Razorback sprites from [Heroes of Might and Magic 2](http://www.spriters-resource.com/pc_computer/heroesofmightandmagic2/sheet/41775)
+- [LibGDX](http://code.google.com/p/libgdx/)
+- Razorback sprites from [Heroes of Might and Magic 2](http://www.spriters-resource.com/pc_computer/heroesofmightandmagic2/sheet/41775)
