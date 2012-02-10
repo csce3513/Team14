@@ -5,12 +5,19 @@ import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.math.Vector2;
 
 /*
+ * Razorback.java
+ * 
  * Create an instance with getInstance() instead of constructor.
  * Using singleton only as an excuse for another JUnit test.
+ *
+ * TODO
+ * ----
+ * Set constant forward velocity for normal and dash modes (gdx.math.Vector2)
+ * Set constant downward acceleration (gravity) (gdx.math.Vector2)
+ * Implement timer for dash mode
+ * 
  */
 public class Razorback {
-	// Go on about the evils of singletons, but this provides us with
-	// an excuse to do a JUnit test on it.
 	private static Razorback instance = null;
 
 	// Razorback states
@@ -23,9 +30,6 @@ public class Razorback {
 	int state = RUNNING;
 	boolean grounded = true;
 	
-	/*
-	 * Can't use default constructor. Use getInstance().
-	 */
 	private Razorback() {}
 
 	/*
@@ -69,17 +73,18 @@ public class Razorback {
 	{
 		// check for collisions
 			// if we have a collision: game over, man. game over.
-		// if grounded, we are running
-			// update position based on forward velocity vector
+			// if we collide with ground
+				// set y acceleration to zero
+				// grounded = true;
 
-		// if not grounded, we are jumping or falling
-		
-		// if jumping
-			// update position based on y-axis acceleration vector
-			// reverse y acceleration vector at zero or sign change - watch for double negative 
+		// if jumping or double jumping
+			// update y position based on y-axis acceleration vector
+			// reverse y acceleration vector at zero or sign change - watch for double negative
+			// if double jumping, set new upward acceleration
 		// if falling
-			// update position based on y-axis acceleration vector
+			// update y position based on y-axis acceleration vector
 
+		// update x position based on x-axis velocity vector
 	}
 	
 	public void processInput()
