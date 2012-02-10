@@ -4,6 +4,18 @@ import com.badlogic.gdx.ApplicationListener;
 
 public class Game implements ApplicationListener {
 
+	private boolean gameOver = false;
+	
+	public void setGameOver(boolean status)
+	{
+		gameOver = status;
+	}
+	
+	public boolean isGameOver()
+	{
+		return gameOver;
+	}
+	
 	@Override
 	public void create() {
 		// TODO Auto-generated method stub
