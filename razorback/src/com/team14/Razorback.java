@@ -29,7 +29,7 @@ public class Razorback {
 	
 	int state = RUNNING;
 	boolean grounded = true;
-	
+	private int lives = 3;
 	private Razorback() {}
 
 	/*
@@ -108,5 +108,15 @@ public class Razorback {
 			game.pause();
 		*
 		*/
+	}
+	
+	public void loseLife()
+	{
+		lives--;
+	}
+
+	public int getLives()
+	{
+		return lives;
 	}
 }
