@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><map height="40" orientation="orthogonal" tileheight="32" tilewidth="32" version="1.0" width="100"><properties><property name="blended tiles" value=""/></properties>
+ <tileset firstgid="1" name="tiles" tileheight="32" tilewidth="32">
+  <image height="32" source="tileset.png" width="64"/>
+ </tileset>
+ <layer height="40" name="Tile Layer 1" width="100">
+  <data compression="zlib" encoding="base64">
+   eJzt0cEJADAIBEGT/ovO2wY8DDOwf/GqAAAAAAAAAAAAAAAAuhOO7obbtPfEHek9Nu09cUf6X5IkSb/1AKdVBeM=
+  </data>
+ </layer>
+</map>
