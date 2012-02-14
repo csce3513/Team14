@@ -152,7 +152,7 @@ public class Game implements ApplicationListener {
 
 		BodyDef jumperBodyDef = new BodyDef();
 		jumperBodyDef.type = BodyDef.BodyType.DynamicBody;
-		jumperBodyDef.position.set(1.0f, 3.0f);
+		jumperBodyDef.position.set(1.0f, 7.0f);
 
 		jumper = world.createBody(jumperBodyDef);
 
