@@ -125,6 +125,8 @@ public class Game implements ApplicationListener {
 	 */
 	private int screenWidth;
 	private int screenHeight;
+	private boolean gameOver = false;
+	private int lives = 3;
 
 	public Game() {
 		super();
@@ -396,6 +398,24 @@ public class Game implements ApplicationListener {
 
 	@Override
 	public void dispose() {
+	}
+
+	public void loseLife()
+	{
+		lives--;
+	}
+	
+	public int getLives()
+	{
+		return lives;
+	}
+	
+	public void setGameOver(boolean b) {
+		gameOver = b;
+	}
+
+	public boolean isGameOver() {
+		return (getLives() == 0);
 	}
 }
 
