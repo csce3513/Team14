@@ -2,7 +2,12 @@ package com.team14;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
-import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.World;
+
+//import com.badlogic.gdx.Gdx;
+//import com.badlogic.gdx.Input.Keys;
+//import com.badlogic.gdx.math.Vector2;
 
 /*
  * Razorback.java
@@ -17,7 +22,8 @@ import com.badlogic.gdx.math.Vector2;
  * Implement timer for dash mode
  * 
  */
-public class Razorback {
+public class Razorback extends BodyDef {
+
 	private static Razorback instance = null;
 
 	// Razorback states
@@ -30,7 +36,10 @@ public class Razorback {
 	int state = RUNNING;
 	boolean grounded = true;
 	private int lives = 3;
-	private Razorback() {}
+
+	protected Razorback() {
+		super();
+	}
 
 	/*
 	 * TODO:

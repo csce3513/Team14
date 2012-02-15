@@ -1,6 +1,34 @@
 package com.team14;
 
 /**
+ * TODO
+ * 
+ * - Splash, high score, and instruction screens
+ * - Fix so camera doesn't change frame of reference, ie razorback appears to
+ *   	stay in same x coordinate 
+ * - Implement dash timer
+ * - Implement sprite animation,
+ *   	tutorial: http://code.google.com/p/libgdx/wiki/SpriteAnimation
+ * - New test map with platforms and gaps to test for losing a life at bottom
+ * - Add overlaid killable objects where collidable tiles are, or change
+ *   	collision detection for vertical surfaces to notify of life lost?
+ *
+ *   ... OR OR OR ...
+ *   
+ * - Detect forward velocity on render. If we go slower than the original
+ *   	velocity (or dash velocity in dash mode), we die.
+ *      I don't know why I didn't think of this before.
+ *
+ * - Create class and sprite for breakable object
+ * - If we do premapped levels instead of a neverending random level, 
+ * 		determine when we reach end of level for victory. 
+ * - Tests tests tests tests tests tests
+ *
+ * - Eventually: Music + sound effects
+ * - Eventually: create a decent level map, at least 1000 tiles long?
+ */
+
+/**
  *   Copyright 2011 David Kirchner dpk@dpk.net
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,14 +81,10 @@ public class Game implements ApplicationListener {
 	private Texture overallTexture;
 
 	/**
-	 * As the name implies, this is the sprite for the jumper character. The
-	 * boolean is just to track which direction the jumper is facing. There are
-	 * better ways to handle this, but in a real game you would handle the
-	 * character sprite a lot differently (with animations and all that) so
-	 * let's call that outside the scope of this example.
+	 * As the name implies, this is the sprite for the razorback. This will need
+	 * to be changed to allow for sprite animation, but it works for the demo.
 	 */
-	private Sprite jumperSprite;
-	private boolean jumperFacingRight;
+	private Sprite razorbackSprite;
 
 	/**
 	 * The libgdx SpriteBatch -- used to optimize sprite drawing.
@@ -76,7 +100,7 @@ public class Game implements ApplicationListener {
 	/**
 	 * This is the player character. It will be created as a dynamic object.
 	 */
-	private Body jumper;
+	private Body razorback;
 
 	/**
 	 * This box2d debug renderer comes from libgdx test code. It draws lines
@@ -141,11 +165,13 @@ public class Game implements ApplicationListener {
 		 * Load up the overall texture and chop it in to pieces. In this case,
 		 * piece.
 		 */
-		overallTexture = new Texture(Gdx.files.internal("assets/sprite.png"));
+		overallTexture = new Texture(Gdx.files.internal("assets/razorback.png"));
 		overallTexture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
 
-		jumperSprite = new Sprite(overallTexture, 0, 0, 21, 37);
-
+		/**
+		 * This may need to change, especially when we start animating this guy.
+		 */
+		razorbackSprite = new Sprite(overallTexture, 0, 0, 99, 63);
 		spriteBatch = new SpriteBatch();
 
 		/**
@@ -154,37 +180,41 @@ public class Game implements ApplicationListener {
 		 */
 		world = new World(new Vector2(0.0f, -10.0f), true);
 
-		BodyDef jumperBodyDef = new BodyDef();
-		jumperBodyDef.type = BodyDef.BodyType.DynamicBody;
-		jumperBodyDef.position.set(1.0f, 7.0f);
+		Razorback razorbackBodyDef = Razorback.getInstance();
+		razorbackBodyDef.type = BodyDef.BodyType.DynamicBody;
+		razorbackBodyDef.position.set(1.0f, 7.0f);
 
-		jumper = world.createBody(jumperBodyDef);
+		razorback = world.createBody(razorbackBodyDef);
 
 		/**
 		 * Boxes are defined by their "half width" and "half height", hence the
 		 * 2 multiplier.
 		 */
-		PolygonShape jumperShape = new PolygonShape();
-		jumperShape.setAsBox(jumperSprite.getWidth() / (2 * PIXELS_PER_METER),
-				jumperSprite.getHeight() / (2 * PIXELS_PER_METER));
+		/**
+		 * Might look at using PolygonShape.set(Vector2[] vertices), since our
+		 * razorback is a rather odd shape for a sprite.
+		 */
+		PolygonShape razorbackShape = new PolygonShape();
+		razorbackShape.setAsBox(razorbackSprite.getWidth() / (2 * PIXELS_PER_METER),
+				razorbackSprite.getHeight() / (2 * PIXELS_PER_METER));
 
 		/**
 		 * The character should not ever spin around on impact.
 		 */
-		jumper.setFixedRotation(true);
+		razorback.setFixedRotation(true);
 
 		/**
 		 * The density and friction of the jumper were found experimentally.
 		 * Play with the numbers and watch how the character moves faster or
 		 * slower.
 		 */
-		FixtureDef jumperFixtureDef = new FixtureDef();
-		jumperFixtureDef.shape = jumperShape;
-		jumperFixtureDef.density = 1.0f;
-		jumperFixtureDef.friction = 5.0f;
+		FixtureDef razorbackFixtureDef = new FixtureDef();
+		razorbackFixtureDef.shape = razorbackShape;
+		razorbackFixtureDef.density = 0.8f;
+		razorbackFixtureDef.friction = 0.0f; // always moving on ground... // 5.0f;
 
-		jumper.createFixture(jumperFixtureDef);
-		jumperShape.dispose();
+		razorback.createFixture(razorbackFixtureDef);
+		razorbackShape.dispose();
 
 		tiledMapHelper.loadCollisions("assets/collisions.txt", world,
 				PIXELS_PER_METER);
@@ -192,7 +222,7 @@ public class Game implements ApplicationListener {
 		debugRenderer = new Box2DDebugRenderer();
 
 		lastRender = System.nanoTime();
-		//jumper.setLinearVelocity(new Vector2(100.0f, 1.0f));
+		razorback.setLinearVelocity(new Vector2(10.0f, 0.0f));
 	}
 
 	@Override
@@ -206,31 +236,30 @@ public class Game implements ApplicationListener {
 		/**
 		 * Detect requested motion.
 		 */
-		boolean moveLeft = false;
-		boolean moveRight = false;
 		boolean doJump = false;
+		boolean doDash = false;
 
-		if (Gdx.input.isKeyPressed(Input.Keys.DPAD_RIGHT)) {
-			moveRight = true;
-		} else {
-			for (int i = 0; i < 2; i++) {
-				if (Gdx.input.isTouched(i)
-						&& Gdx.input.getX() > Gdx.graphics.getWidth() * 0.80f) {
-					moveRight = true;
-				}
-			}
-		}
-
-		if (Gdx.input.isKeyPressed(Input.Keys.DPAD_LEFT)) {
-			moveLeft = true;
-		} else {
-			for (int i = 0; i < 2; i++) {
-				if (Gdx.input.isTouched(i)
-						&& Gdx.input.getX() < Gdx.graphics.getWidth() * 0.20f) {
-					moveLeft = true;
-				}
-			}
-		}
+//		if (Gdx.input.isKeyPressed(Input.Keys.DPAD_RIGHT)) {
+//			moveRight = true;
+//		} else {
+//			for (int i = 0; i < 2; i++) {
+//				if (Gdx.input.isTouched(i)
+//						&& Gdx.input.getX() > Gdx.graphics.getWidth() * 0.80f) {
+//					moveRight = true;
+//				}
+//			}
+//		}
+//
+//		if (Gdx.input.isKeyPressed(Input.Keys.DPAD_LEFT)) {
+//			moveLeft = true;
+//		} else {
+//			for (int i = 0; i < 2; i++) {
+//				if (Gdx.input.isTouched(i)
+//						&& Gdx.input.getX() < Gdx.graphics.getWidth() * 0.20f) {
+//					moveLeft = true;
+//				}
+//			}
+//		}
 
 		if (Gdx.input.isKeyPressed(Input.Keys.DPAD_UP)) {
 			doJump = true;
@@ -242,47 +271,37 @@ public class Game implements ApplicationListener {
 				}
 			}
 		}
-
+		
 		/**
-		 * Act on that requested motion.
-		 * 
-		 * This code changes the jumper's direction. It's handled separately
-		 * from the jumping so that the player can jump and move simultaneously.
-		 * The horizontal figure was arrived at experimentally -- try other
-		 * values to experience different speeds.
-		 * 
-		 * The impulses are applied to the center of the jumper.
+		 * TODO: implement dash mode for touch screen.
 		 */
-				if (moveRight) {
-			jumper.applyLinearImpulse(new Vector2(0.05f, 0.0f),
-					jumper.getWorldCenter());
-			if (jumperFacingRight == false) {
-				jumperSprite.flip(true, false);
-			}
-			jumperFacingRight = true;
-		} else if (moveLeft) {
-			jumper.applyLinearImpulse(new Vector2(-0.05f, 0.0f),
-					jumper.getWorldCenter());
-			if (jumperFacingRight == true) {
-				jumperSprite.flip(true, false);
-			}
-			jumperFacingRight = false;
-		}
-
+		if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT))
+			doDash = true;
+		
 		/**
-		 * The jumper dude can only jump while on the ground. There are better
+		 * The razorback can only jump while on the ground. There are better
 		 * ways to detect ground contact, but for our purposes it is sufficient
 		 * to test that the vertical velocity is zero (or close to it). As in
 		 * the above code, the vertical figure here was found through
 		 * experimentation. It's enough to get the guy off the ground.
 		 * 
-		 * As before, impulse is applied to the center of the jumper.
+		 * As before, impulse is applied to the center of the razorback.
 		 */
-		if (doJump && Math.abs(jumper.getLinearVelocity().y) < 1e-9) {
-			jumper.applyLinearImpulse(new Vector2(0.0f, 0.8f),
-					jumper.getWorldCenter());
+		/**
+		 * TODO: DOUBLE JUMP MODE, ADD ME.
+		 */
+		if (doJump && Math.abs(razorback.getLinearVelocity().y) < 1e-9) {
+			razorback.applyLinearImpulse(new Vector2(0.0f, 10.0f),
+					razorback.getWorldCenter());
 		}
 
+		/**
+		 * TODO: Implement a timer to do this for 1.5 seconds, and then
+		 * 		 return to original forward velocity.
+		 */
+		if (doDash)
+			razorback.setLinearVelocity(new Vector2(20.0f, 0.0f));
+		
 		/**
 		 * Have box2d update the positions and velocities (and etc) of all
 		 * tracked objects. The second and third argument specify the number of
@@ -303,7 +322,7 @@ public class Game implements ApplicationListener {
 		 */
 
 		tiledMapHelper.getCamera().position.x = PIXELS_PER_METER
-				* jumper.getPosition().x;
+				* razorback.getPosition().x + 300;
 		
 		/**
 		 * Ensure that the camera is only showing the map, nothing outside.
@@ -335,12 +354,12 @@ public class Game implements ApplicationListener {
 		spriteBatch.setProjectionMatrix(tiledMapHelper.getCamera().combined);
 		spriteBatch.begin();
 
-		jumperSprite.setPosition(
-				PIXELS_PER_METER * jumper.getPosition().x + 10,
-				//		- jumperSprite.getWidth() / 2,
-				PIXELS_PER_METER * jumper.getPosition().y
-						- jumperSprite.getHeight() / 2);
-		jumperSprite.draw(spriteBatch);
+		razorbackSprite.setPosition(
+				PIXELS_PER_METER * razorback.getPosition().x
+						- razorbackSprite.getWidth() / 2,
+				PIXELS_PER_METER * razorback.getPosition().y
+						- razorbackSprite.getHeight() / 2);
+		razorbackSprite.draw(spriteBatch);
 
 		/**
 		 * "Flush" the sprites to screen.
