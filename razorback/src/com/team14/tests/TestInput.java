@@ -26,16 +26,16 @@ public class TestInput extends TestCase
     	Scanner input = null;
     	input = new Scanner(new BufferedReader(new FileReader("testinput.txt")));
 
-    	// Reads input from file to mock user input and dump it to the console.
+    	// Reads input from file to mock user input.
     	int	tmp	= 0;
-    	while (input.hasNextInt())
-    	{
-    		tmp = input.nextInt();
-    		assertSame(Keys.UP, tmp);
-    		System.out.println("here");
-    	}
-    	
-    	// Close the streams.
+    	//Test for jump input to gdx jump key.
+    	tmp = input.nextInt();
+    	assertSame(Keys.DPAD_UP, tmp);
+    	//Test for dash input to gdx dash key.
+    	tmp=input.nextInt();
+    	System.out.println(tmp);
+    	assertTrue(Keys.CONTROL_LEFT==tmp);
+    	// Close the streams
     	input.close();
     }
 }
