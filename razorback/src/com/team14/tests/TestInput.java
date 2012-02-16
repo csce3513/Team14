@@ -1,34 +1,41 @@
+/**
+ * 
+ * @author Jeremy Barr
+ * 
+ * File: TestInput.java
+ * Purpose: Tests mock input against key constants in LibGDX
+ *
+ * TODO: Extend to cover all used keys (dash, menu selection, etc)
+ * 
+ */
 package com.team14.tests;
 
-import static org.junit.Assert.*;
+//import static org.junit.Assert.*; - not needed?
 import java.io.*;
 import java.util.Scanner;
 import junit.framework.TestCase;
 import org.junit.Test;
 import com.badlogic.gdx.Input.Keys;
 
-
-
-public class TestInput extends TestCase{
-
+public class TestInput extends TestCase
+{
     @Test                
-    public void test ()throws IOException{
-	    System.out.println("here");
+    public void test() throws IOException{
+    	System.out.println("here");
 
-    	Scanner input=null;
-    	input =new Scanner(new BufferedReader(new FileReader("testinput.txt")));
+    	Scanner input = null;
+    	input = new Scanner(new BufferedReader(new FileReader("testinput.txt")));
 
-	// Reads input from file to mock user input and dump it to the console.
-	int	tmp	= 0;
-	while (input.hasNextInt()){
-	
-		tmp =input.nextInt();
-	    assertSame(Keys.UP,tmp);
-	    System.out.println("here");
-	}
-	// Close the streams.
-
-	  input.close();
-
+    	// Reads input from file to mock user input and dump it to the console.
+    	int	tmp	= 0;
+    	while (input.hasNextInt())
+    	{
+    		tmp = input.nextInt();
+    		assertSame(Keys.UP,tmp);
+    		System.out.println("here");
+    	}
+    	
+    	// Close the streams.
+    	input.close();
     }
 }
