@@ -31,7 +31,7 @@ public class TestInput extends TestCase
     	while (input.hasNextInt())
     	{
     		tmp = input.nextInt();
-    		assertSame(Keys.UP,tmp);
+    		assertSame(Keys.UP, tmp);
     		System.out.println("here");
     	}
     	

@@ -3,12 +3,19 @@ package com.team14;
 /**
  * TODO
  * 
+ * For next release
+ * ----------------
+ * - Clean up render(), break logical chunks into their own methods 
+ * - Clean up or eliminate Razorback.java, turns out we might not need it
  * - Splash, high score, and instruction screens
- * - Fix so camera doesn't change frame of reference, ie razorback appears to
- *   	stay in same x coordinate 
+ * - To do high score screen, we need a scoring mechanism
  * - Implement dash timer
+ * - We have jump, now need double jump
  * - Implement sprite animation,
  *   	tutorial: http://code.google.com/p/libgdx/wiki/SpriteAnimation
+ * 
+ * To implement soon-ish
+ * ---------------------
  * - New test map with platforms and gaps to test for losing a life at bottom
  * - Add overlaid killable objects where collidable tiles are, or change
  *   	collision detection for vertical surfaces to notify of life lost?
@@ -23,9 +30,16 @@ package com.team14;
  * - If we do premapped levels instead of a neverending random level, 
  * 		determine when we reach end of level for victory. 
  * - Tests tests tests tests tests tests
- *
- * - Eventually: Music + sound effects
- * - Eventually: create a decent level map, at least 1000 tiles long?
+ * 
+ * Completed
+ * ---------
+ * - Fix so camera doesn't change frame of reference, ie razorback appears to
+ *		stay in same x coordinate 
+ * 
+ * Eventually...
+ * -------------
+ * - Music + sound effects
+ * - Create a decent level map, at least 1000 tiles long?
  */
 
 /**
@@ -47,10 +61,6 @@ package com.team14;
  * http://dpk.net/2011/05/08/libgdx-box2d-tiled-maps-full-working-example-part-2/
  */
 
-/**
- * TODO:
- * Make Razorback class extend Body class, for testing position setting 
- */
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -125,9 +135,20 @@ public class Game implements ApplicationListener {
 	 */
 	private int screenWidth;
 	private int screenHeight;
+	
+	/**
+	 * Game variables, states, and constants
+	 */
 	private boolean gameOver = false;
 	private int lives = 3;
-
+	public static float normalXVelocity = 10.0f;
+	public static float dashXVelocity = 20.0f;
+	private static int RUNNING = 0;
+	private static int JUMP = 1;
+	private static int DJUMP = 2;
+	private static int DASH = 3;
+	private int state = RUNNING;
+	
 	public Game() {
 		super();
 
@@ -154,13 +175,9 @@ public class Game implements ApplicationListener {
 		}
 
 		tiledMapHelper = new TiledMapHelper();
-
 		tiledMapHelper = new TiledMapHelper();
-
 		tiledMapHelper.setPackerDirectory("assets/tiles");
-
 		tiledMapHelper.loadMap("assets/tiles/testmap.tmx");
-
 		tiledMapHelper.prepareCamera(screenWidth, screenHeight);
 
 		/**
@@ -224,7 +241,7 @@ public class Game implements ApplicationListener {
 		debugRenderer = new Box2DDebugRenderer();
 
 		lastRender = System.nanoTime();
-		razorback.setLinearVelocity(new Vector2(10.0f, 0.0f));
+		razorback.setLinearVelocity(new Vector2(normalXVelocity, 0.0f));
 	}
 
 	@Override
@@ -241,28 +258,6 @@ public class Game implements ApplicationListener {
 		boolean doJump = false;
 		boolean doDash = false;
 
-//		if (Gdx.input.isKeyPressed(Input.Keys.DPAD_RIGHT)) {
-//			moveRight = true;
-//		} else {
-//			for (int i = 0; i < 2; i++) {
-//				if (Gdx.input.isTouched(i)
-//						&& Gdx.input.getX() > Gdx.graphics.getWidth() * 0.80f) {
-//					moveRight = true;
-//				}
-//			}
-//		}
-//
-//		if (Gdx.input.isKeyPressed(Input.Keys.DPAD_LEFT)) {
-//			moveLeft = true;
-//		} else {
-//			for (int i = 0; i < 2; i++) {
-//				if (Gdx.input.isTouched(i)
-//						&& Gdx.input.getX() < Gdx.graphics.getWidth() * 0.20f) {
-//					moveLeft = true;
-//				}
-//			}
-//		}
-
 		if (Gdx.input.isKeyPressed(Input.Keys.DPAD_UP)) {
 			doJump = true;
 		} else {
@@ -273,13 +268,13 @@ public class Game implements ApplicationListener {
 				}
 			}
 		}
-		
+
 		/**
 		 * TODO: implement dash mode for touch screen.
 		 */
 		if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT))
 			doDash = true;
-		
+
 		/**
 		 * The razorback can only jump while on the ground. There are better
 		 * ways to detect ground contact, but for our purposes it is sufficient
@@ -297,12 +292,27 @@ public class Game implements ApplicationListener {
 					razorback.getWorldCenter());
 		}
 
+		/* New jump+doublejump code, work in progress */
+//		if (Math.abs(razorback.getLinearVelocity().y) < 1e-9)
+//			state = RUNNING;
+//		if ((doJump) && (state != DJUMP))
+//		{
+//			if (state == RUNNING)
+//				state = JUMP;
+//			else if (state == JUMP)
+//				state = DJUMP;
+//			if ((state == JUMP) || (state == DJUMP))
+//				razorback.applyLinearImpulse(new Vector2(0.0f, 10.0f),
+//					razorback.getWorldCenter());
+//		}
+//		System.out.println("State: " + state);
+		
 		/**
 		 * TODO: Implement a timer to do this for 1.5 seconds, and then
 		 * 		 return to original forward velocity.
 		 */
 		if (doDash)
-			razorback.setLinearVelocity(new Vector2(20.0f, 0.0f));
+			razorback.setLinearVelocity(new Vector2(dashXVelocity, 0.0f));
 		
 		/**
 		 * Have box2d update the positions and velocities (and etc) of all
@@ -386,6 +396,13 @@ public class Game implements ApplicationListener {
 		}
 
 		lastRender = now;
+		
+		/**
+		 * Now, at the end, did we lose speed by hitting something?
+		 */
+		if (getXVelocity() < normalXVelocity)
+			loseLife();
+		//System.out.println("Lives: " + lives + ", xvel: " + getXVelocity() + ", origxvel: " + normalXVelocity);
 	}
 
 	@Override
@@ -400,22 +417,41 @@ public class Game implements ApplicationListener {
 	public void dispose() {
 	}
 
-	public void loseLife()
+	/**
+	 * Methods related to lives: getting and setting, losing and gaining.
+	 */
+	public void setLives(int i)
 	{
-		lives--;
+		lives = i;
 	}
 	
 	public int getLives()
 	{
 		return lives;
 	}
+
+	public void loseLife()
+	{
+		lives--;
+		if (lives <= 0)
+			gameOver = true;
+	}
 	
-	public void setGameOver(boolean b) {
-		gameOver = b;
+	public void oneUp()
+	{
+		lives++;
 	}
 
+	/**
+	 * Methods related to game over status.
+	 * There's no need for an outside source to twiddle with our gameover status.
+	 */
 	public boolean isGameOver() {
-		return (getLives() == 0);
+		return gameOver;
+	}
+	
+	public float getXVelocity()
+	{
+		return razorback.getLinearVelocity().x;
 	}
 }
-
