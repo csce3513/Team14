@@ -86,17 +86,6 @@ public class Game implements ApplicationListener {
 	private TiledMapHelper tiledMapHelper;
 
 	/**
-	 * Holder of the texture for the various non-map sprites the game will have.
-	 */
-	private Texture overallTexture;
-
-	/**
-	 * As the name implies, this is the sprite for the razorback. This will need
-	 * to be changed to allow for sprite animation, but it works for the demo.
-	 */
-	private Sprite razorbackSprite;
-
-	/**
 	 * The libgdx SpriteBatch -- used to optimize sprite drawing.
 	 */
 	private SpriteBatch spriteBatch;
@@ -110,7 +99,7 @@ public class Game implements ApplicationListener {
 	/**
 	 * This is the player character. It will be created as a dynamic object.
 	 */
-	private Body razorback;
+    private Razorback razorback;
 
 	/**
 	 * This box2d debug renderer comes from libgdx test code. It draws lines
@@ -118,6 +107,7 @@ public class Game implements ApplicationListener {
 	 * that the world collisions are as you expect them to be. It is, however,
 	 * slow, so only use it for testing.
 	 */
+    // Remove me for final release
 	private Box2DDebugRenderer debugRenderer;
 
 	/**
@@ -140,28 +130,29 @@ public class Game implements ApplicationListener {
 	 * Game variables, states, and constants
 	 */
 	private boolean gameOver = false;
-	private int lives = 3;
-	public static float normalXVelocity = 10.0f;
-	public static float dashXVelocity = 20.0f;
-	private static int RUNNING = 0;
-	private static int JUMP = 1;
-	private static int DJUMP = 2;
-	private static int DASH = 3;
-	private int state = RUNNING;
-	
-	public Game() {
+    private int level = 1;
+    private int lives;
+    private boolean reset = true;
+
+	public Game(int currLevel, int livesLeft) {
 		super();
 
 		// Defer until create() when Gdx is initialized.
 		screenWidth = -1;
 		screenHeight = -1;
+
+        level = currLevel;
+        lives = livesLeft;
 	}
 
-	public Game(int width, int height) {
+	public Game(int width, int height, int currLevel, int livesLeft) {
 		super();
 
 		screenWidth = width;
 		screenHeight = height;
+
+        level = currLevel;
+        lives = livesLeft;
 	}
 
 	@Override
@@ -180,17 +171,6 @@ public class Game implements ApplicationListener {
 		tiledMapHelper.loadMap("assets/tiles/testmap.tmx");
 		tiledMapHelper.prepareCamera(screenWidth, screenHeight);
 
-		/**
-		 * Load up the overall texture and chop it in to pieces. In this case,
-		 * piece.
-		 */
-		overallTexture = new Texture(Gdx.files.internal("assets/razorback.png"));
-		overallTexture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-
-		/**
-		 * This may need to change, especially when we start animating this guy.
-		 */
-		razorbackSprite = new Sprite(overallTexture, 0, 0, 99, 63);
 		spriteBatch = new SpriteBatch();
 
 		/**
@@ -199,41 +179,8 @@ public class Game implements ApplicationListener {
 		 */
 		world = new World(new Vector2(0.0f, -10.0f), true);
 
-		Razorback razorbackBodyDef = Razorback.getInstance();
-		razorbackBodyDef.type = BodyDef.BodyType.DynamicBody;
-		razorbackBodyDef.position.set(1.0f, 7.0f);
+        razorback = Razorback.getInstance(world, lives);
 
-		razorback = world.createBody(razorbackBodyDef);
-
-		/**
-		 * Boxes are defined by their "half width" and "half height", hence the
-		 * 2 multiplier.
-		 */
-		/**
-		 * Might look at using PolygonShape.set(Vector2[] vertices), since our
-		 * razorback is a rather odd shape for a sprite.
-		 */
-		PolygonShape razorbackShape = new PolygonShape();
-		razorbackShape.setAsBox(razorbackSprite.getWidth() / (2 * PIXELS_PER_METER),
-				razorbackSprite.getHeight() / (2 * PIXELS_PER_METER));
-
-		/**
-		 * The character should not ever spin around on impact.
-		 */
-		razorback.setFixedRotation(true);
-
-		/**
-		 * The density and friction of the jumper were found experimentally.
-		 * Play with the numbers and watch how the character moves faster or
-		 * slower.
-		 */
-		FixtureDef razorbackFixtureDef = new FixtureDef();
-		razorbackFixtureDef.shape = razorbackShape;
-		razorbackFixtureDef.density = 0.8f;
-		razorbackFixtureDef.friction = 0.0f; // always moving on ground... // 5.0f;
-
-		razorback.createFixture(razorbackFixtureDef);
-		razorbackShape.dispose();
 
 		tiledMapHelper.loadCollisions("assets/collisions.txt", world,
 				PIXELS_PER_METER);
@@ -241,7 +188,6 @@ public class Game implements ApplicationListener {
 		debugRenderer = new Box2DDebugRenderer();
 
 		lastRender = System.nanoTime();
-		razorback.setLinearVelocity(new Vector2(normalXVelocity, 0.0f));
 	}
 
 	@Override
@@ -252,67 +198,11 @@ public class Game implements ApplicationListener {
 	public void render() {
 		long now = System.nanoTime();
 
-		/**
-		 * Detect requested motion.
-		 */
-		boolean doJump = false;
-		boolean doDash = false;
-
-		if (Gdx.input.isKeyPressed(Input.Keys.DPAD_UP)) {
-			doJump = true;
-		} else {
-			for (int i = 0; i < 2; i++) {
-				if (Gdx.input.isTouched(i)
-						&& Gdx.input.getY() < Gdx.graphics.getHeight() * 0.20f) {
-					doJump = true;
-				}
-			}
-		}
-
-		/**
-		 * TODO: implement dash mode for touch screen.
-		 */
-		if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT))
-			doDash = true;
-
-		/**
-		 * The razorback can only jump while on the ground. There are better
-		 * ways to detect ground contact, but for our purposes it is sufficient
-		 * to test that the vertical velocity is zero (or close to it). As in
-		 * the above code, the vertical figure here was found through
-		 * experimentation. It's enough to get the guy off the ground.
-		 * 
-		 * As before, impulse is applied to the center of the razorback.
-		 */
-		/**
-		 * TODO: DOUBLE JUMP MODE, ADD ME.
-		 */
-		if (doJump && Math.abs(razorback.getLinearVelocity().y) < 1e-9) {
-			razorback.applyLinearImpulse(new Vector2(0.0f, 10.0f),
-					razorback.getWorldCenter());
-		}
-
-		/* New jump+doublejump code, work in progress */
-//		if (Math.abs(razorback.getLinearVelocity().y) < 1e-9)
-//			state = RUNNING;
-//		if ((doJump) && (state != DJUMP))
-//		{
-//			if (state == RUNNING)
-//				state = JUMP;
-//			else if (state == JUMP)
-//				state = DJUMP;
-//			if ((state == JUMP) || (state == DJUMP))
-//				razorback.applyLinearImpulse(new Vector2(0.0f, 10.0f),
-//					razorback.getWorldCenter());
-//		}
-//		System.out.println("State: " + state);
+		if (Gdx.input.isKeyPressed(Input.Keys.DPAD_UP))
+            razorback.jump();
 		
-		/**
-		 * TODO: Implement a timer to do this for 1.5 seconds, and then
-		 * 		 return to original forward velocity.
-		 */
-		if (doDash)
-			razorback.setLinearVelocity(new Vector2(dashXVelocity, 0.0f));
+		if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT))
+            razorback.dash();
 		
 		/**
 		 * Have box2d update the positions and velocities (and etc) of all
@@ -334,7 +224,7 @@ public class Game implements ApplicationListener {
 		 */
 
 		tiledMapHelper.getCamera().position.x = PIXELS_PER_METER
-				* razorback.getPosition().x + 300;
+				* razorback.getXPosition() + 300;
 		
 		/**
 		 * Ensure that the camera is only showing the map, nothing outside.
@@ -366,12 +256,17 @@ public class Game implements ApplicationListener {
 		spriteBatch.setProjectionMatrix(tiledMapHelper.getCamera().combined);
 		spriteBatch.begin();
 
-		razorbackSprite.setPosition(
-				PIXELS_PER_METER * razorback.getPosition().x
-						- razorbackSprite.getWidth() / 2,
-				PIXELS_PER_METER * razorback.getPosition().y
-						- razorbackSprite.getHeight() / 2);
+        razorback.move(spriteBatch);
+
+        /*
+         * - THIS IS NOW TO BE IN razorback.move() - NOT TESTED YET.
+		razorback.sprite.setPosition(
+				PIXELS_PER_METER * razorback.getXPosition
+						- razorback.sprite.getWidth() / 2,
+				PIXELS_PER_METER * razorback.getYPosition
+						- razorback.sprite.getHeight() / 2);
 		razorbackSprite.draw(spriteBatch);
+        */
 
 		/**
 		 * "Flush" the sprites to screen.
@@ -400,8 +295,8 @@ public class Game implements ApplicationListener {
 		/**
 		 * Now, at the end, did we lose speed by hitting something?
 		 */
-		if (getXVelocity() < normalXVelocity)
-			loseLife();
+//		if (razorback.getXVelocity() < normalXVelocity)
+//			loseLife();
 		//System.out.println("Lives: " + lives + ", xvel: " + getXVelocity() + ", origxvel: " + normalXVelocity);
 	}
 
@@ -418,40 +313,10 @@ public class Game implements ApplicationListener {
 	}
 
 	/**
-	 * Methods related to lives: getting and setting, losing and gaining.
-	 */
-	public void setLives(int i)
-	{
-		lives = i;
-	}
-	
-	public int getLives()
-	{
-		return lives;
-	}
-
-	public void loseLife()
-	{
-		lives--;
-		if (lives <= 0)
-			gameOver = true;
-	}
-	
-	public void oneUp()
-	{
-		lives++;
-	}
-
-	/**
 	 * Methods related to game over status.
 	 * There's no need for an outside source to twiddle with our gameover status.
 	 */
 	public boolean isGameOver() {
 		return gameOver;
-	}
-	
-	public float getXVelocity()
-	{
-		return razorback.getLinearVelocity().x;
 	}
 }
