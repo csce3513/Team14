@@ -137,30 +137,26 @@ public class Razorback
 	/**
 	 * jump(): Attempts to perform a jump or double jump.
 	 */
-    public boolean jump()
-    {
-   /**
+    public boolean jump(){
         long now = System.nanoTime();
         if ((now - jumpTimer) > 40000000) // 40ms delay, to prevent accidental double jump
-        */
+        
         {
             switch (state)
             {
                 case RUNNING: 
-                	return true;
-          /**
                 case JUMP:
                     state++;
                     body.applyLinearImpulse(new Vector2(0.0f, 10.0f), body.getWorldCenter());
                     jumpTimer = System.nanoTime();
-                	//return true;
-                	 * 
-                	 */
+                	return true;
+            
                 default:
                 	return false;
 
             }
         }
+        return false;
    
     }
 
@@ -206,34 +202,24 @@ public class Razorback
      */
     public float getXVelocity()
     {
-    	return 0.0f;
-
-    /*
-     *  - NOT TESTED YET. Make test case, then implement.    
-     */
+    	return body.getLinearVelocity().x;
     }
 
     public float getYVelocity()
     {
-    	return 0.0f;
-
-    /*
-     *  - NOT TESTED YET. Make test case, then implement.    
-     */
+    	return body.getLinearVelocity().y;
     }
 
     public void setXVelocity(float xvel)
     {
-    /*
-     *  - NOT TESTED YET. Make test case, then implement.    
-     */
+    	body.setLinearVelocity(new Vector2(xvel, getYVelocity()));
+ 
     }
 
     public void setYVelocity(float yvel)
     {
-    /*
-     *  - NOT TESTED YET. Make test case, then implement.    
-     */
+    	body.setLinearVelocity(new Vector2 (getXVelocity(), yvel));
+    
     }
     
     /**
@@ -241,20 +227,13 @@ public class Razorback
      */
     public float getXPosition()
     {
-    	// return 0.0f;
     	return body.getPosition().x;
-    /*
-     *  - NOT TESTED YET. Make test case, then implement.    
-     */
     }
 
     public float getYPosition()
     {
-    	return 0.0f;
+    	return body.getPosition().y;
 
-    /*
-     *  - NOT TESTED YET. Make test case, then implement.    
-     */
     }
 
     

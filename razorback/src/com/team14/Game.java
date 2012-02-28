@@ -99,7 +99,7 @@ public class Game implements ApplicationListener {
 	/**
 	 * This is the player character. It will be created as a dynamic object.
 	 */
-    private Razorback razorback;
+    public Razorback razorback;
 
 	/**
 	 * This box2d debug renderer comes from libgdx test code. It draws lines

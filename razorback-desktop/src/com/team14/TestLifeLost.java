@@ -23,7 +23,7 @@ public class TestLifeLost {
 	 */
 	@Test
 	public void test() {
-		Game game = new Game();	
+		Game game = new Game(1,3);	
         new LwjglApplication(game, "Game", 800, 600, false);
 		try 
 		{
