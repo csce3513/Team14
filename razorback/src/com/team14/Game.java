@@ -319,4 +319,9 @@ public class Game implements ApplicationListener {
 	public boolean isGameOver() {
 		return gameOver;
 	}
+	
+	public float getScore() {
+		return razorback.getXPosition();
+	}
+
 }
