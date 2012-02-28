@@ -21,7 +21,7 @@ public class TestRazorbackSingleton
 		/**
 		 * Attempt to make two instances, should both refer to first
 		 */
-		assertSame(Razorback.getInstance(), Razorback.getInstance());
+		assertSame(Razorback.getInstance(null,0), Razorback.getInstance(null,0));
 	}
 
 }

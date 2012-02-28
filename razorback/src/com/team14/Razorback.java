@@ -60,10 +60,12 @@ public class Razorback
         super();
         lives = livesLeft;
         
+        
         /**
          * Load up the overall texture, create sprite from it.
          */
-        texture = new Texture(Gdx.files.internal("assets/razorback.png"));
+        if (world!=null){
+        texture = new Texture(Gdx.files.internal("assets/razorback.png"));    
         texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
         sprite = new Sprite(texture, 0, 0, 99, 63);
 
@@ -101,6 +103,7 @@ public class Razorback
 
 		body.setLinearVelocity(new Vector2(normalXVelocity, 0.0f));
         jumpTimer = dashTimer = System.nanoTime();
+        }
 	}
 
 	/*
@@ -134,27 +137,31 @@ public class Razorback
 	/**
 	 * jump(): Attempts to perform a jump or double jump.
 	 */
-    public void jump()
+    public boolean jump()
     {
-    /*  - NOT TESTED YET, TEST FIRST
-     *
+   /**
         long now = System.nanoTime();
         if ((now - jumpTimer) > 40000000) // 40ms delay, to prevent accidental double jump
+        */
         {
-            switch (STATE)
+            switch (state)
             {
-                case RUNNING:
+                case RUNNING: 
+                	return true;
+          /**
                 case JUMP:
                     state++;
                     body.applyLinearImpulse(new Vector2(0.0f, 10.0f), body.getWorldCenter());
                     jumpTimer = System.nanoTime();
-                    break;
+                	//return true;
+                	 * 
+                	 */
                 default:
-                    break;
+                	return false;
+
             }
         }
-     *   
-     */
+   
     }
 
     /**
