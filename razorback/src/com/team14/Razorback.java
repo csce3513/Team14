@@ -1,36 +1,24 @@
 package com.team14;
 
 import com.badlogic.gdx.Gdx;
-//import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
-
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
-
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
+import java.util.Timer;
+import java.util.TimerTask;
 
-//import com.badlogic.gdx.Gdx;
-//import com.badlogic.gdx.Input.Keys;
-//import com.badlogic.gdx.math.Vector2;
-
-/*
- * Razorback.java
+/**
+ *  Razorback.java
  * 
  * Create an instance with getInstance() instead of constructor.
  * Using singleton only as an excuse for another JUnit test.
- *
- * TODO
- * ----
- * Set constant forward velocity for normal and dash modes (gdx.math.Vector2)
- * Set constant downward acceleration (gravity) (gdx.math.Vector2)
- * Implement timer for dash mode
- * 
  */
 public class Razorback
 {
@@ -43,24 +31,23 @@ public class Razorback
 	private static final int RUNNING = 0;
 	private static final int JUMP = 1;
 	private static final int DOUBLEJUMP = 2;
-	private static final int DASH = 3;
-	private static final int DEAD = 4;
+	private static final int DEAD = 3;
 	private int state = RUNNING;
-    
+    private boolean dash = false;
 	private int lives;
 
     private static final float normalXVelocity = 10.0f;
     private static final float dashXVelocity = 20.0f;
 	public static final float PIXELS_PER_METER = 60.0f;
 
-    private long jumpTimer, dashTimer;
+    private Timer jumpTimer = new Timer();
+    private Timer dashTimer = new Timer();
 
 	protected Razorback(World world, int livesLeft)
     {
         super();
         lives = livesLeft;
-        
-        
+
         /**
          * Load up the overall texture, create sprite from it.
          */
@@ -102,7 +89,6 @@ public class Razorback
 		shape.dispose();
 
 		body.setLinearVelocity(new Vector2(normalXVelocity, 0.0f));
-        jumpTimer = dashTimer = System.nanoTime();
         }
 	}
 
@@ -139,7 +125,7 @@ public class Razorback
 	 */
     public boolean jump(){
         long now = System.nanoTime();
-        if ((now - jumpTimer) > 40000000) // 40ms delay, to prevent accidental double jump
+//        if ((now - jumpTimer) > 40000000) // 40ms delay, to prevent accidental double jump
         
         {
             switch (state)
@@ -148,7 +134,7 @@ public class Razorback
                 case JUMP:
                     state++;
                     body.applyLinearImpulse(new Vector2(0.0f, 10.0f), body.getWorldCenter());
-                    jumpTimer = System.nanoTime();
+ //                   jumpTimer = System.nanoTime();
                 	return true;
             
                 default:
@@ -156,7 +142,7 @@ public class Razorback
 
             }
         }
-        return false;
+//        return false;
    
     }
 
@@ -167,16 +153,13 @@ public class Razorback
      */
     public void dash()
     {
-    /*  - NOT TESTED YET, TEST FIRST
-     *
-        if (state != DASH)
+        if (!dash)
         {
-            long now = System.nanoTime();
-            if ((now - dashTimer) > 
-            if (state == )
+        	setXVelocity(dashXVelocity);
+        	dash = true;
+        	dashTimer = new Timer();
+        	dashTimer.schedule(new DashTimerTask(), 1500);
         }
-     *
-     */
     }
 
     /**
@@ -185,16 +168,10 @@ public class Razorback
      */
     public boolean grounded()
     {
-    	return false;
-
-    /*  - NOT TESTED YET. Make test case, then implement.
-     *
         if (Math.abs(body.getLinearVelocity().y) < 1e-9)
             return true;
         else
             return false;
-     *
-     */
     }
 
     /**
@@ -212,14 +189,12 @@ public class Razorback
 
     public void setXVelocity(float xvel)
     {
-    	body.setLinearVelocity(new Vector2(xvel, getYVelocity()));
- 
+    	body.setLinearVelocity(new Vector2(xvel, 0.0f /*getYVelocity()*/));
     }
 
     public void setYVelocity(float yvel)
     {
     	body.setLinearVelocity(new Vector2 (getXVelocity(), yvel));
-    
     }
     
     /**
@@ -235,8 +210,7 @@ public class Razorback
     	return body.getPosition().y;
 
     }
-
-    
+  
 	/**
      * Methods related to lives.
      */
@@ -253,5 +227,15 @@ public class Razorback
 	public int getLives()
 	{
 		return lives;
+	}
+	
+	class DashTimerTask extends TimerTask
+	{
+		public void run()
+		{
+			setXVelocity(normalXVelocity);
+			dash = false;
+			dashTimer.cancel();
+		}
 	}
 }
