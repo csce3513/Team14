@@ -133,7 +133,7 @@ public class Razorback
                 case RUNNING: 
                 case JUMP:
                     state++;
-                    body.applyLinearImpulse(new Vector2(0.0f, 10.0f), body.getWorldCenter());
+                    body.applyLinearImpulse(new Vector2(0.0f, 4.0f), body.getWorldCenter());
  //                   jumpTimer = System.nanoTime();
                 	return true;
             

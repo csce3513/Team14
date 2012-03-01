@@ -20,7 +20,7 @@ public class TestGameOver
 	@Test
 	public void test()
 	{
-		Game testGame = new Game();
+		Game testGame = new Game(1,3);
 		boolean gameOver = true;		
 		
 		// Should not be equal. Lives have not been lost.
@@ -28,9 +28,9 @@ public class TestGameOver
 		assertNotSame(gameOver, g);
 		
 		// Now lose all the lives. New game defaults to 3 lives (0-2)
-		testGame.loseLife();
-		testGame.loseLife();
-		testGame.loseLife();
+		testGame.razorback.loseLife();
+		testGame.razorback.loseLife();
+		testGame.razorback.loseLife();
 		
 		assertTrue(testGame.isGameOver());
 	}
