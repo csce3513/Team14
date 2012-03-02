@@ -64,6 +64,8 @@ package com.team14;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
@@ -76,8 +78,9 @@ import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
+import java.awt.event.*;
 
-public class Game implements ApplicationListener {
+public class Game implements ApplicationListener,InputProcessor {
 	/**
 	 * The time the last frame was rendered, used for throttling framerate
 	 */
@@ -161,6 +164,7 @@ public class Game implements ApplicationListener {
 		/**
 		 * If the viewport's size is not yet known, determine it here.
 		 */
+		
 		if (screenWidth == -1) {
 			screenWidth = Gdx.graphics.getWidth();
 			screenHeight = Gdx.graphics.getHeight();
@@ -187,8 +191,9 @@ public class Game implements ApplicationListener {
 				PIXELS_PER_METER);
 
 		debugRenderer = new Box2DDebugRenderer();
-
+		
 		lastRender = System.nanoTime();
+		Gdx.input.setInputProcessor(this);
 	}
 
 	@Override
@@ -198,15 +203,6 @@ public class Game implements ApplicationListener {
 	@Override
 	public void render() {
 		long now = System.nanoTime();
-
-		if (justTyped(Input.Keys.DPAD_UP))
-		//if (Gdx.input.isKeyPressed(Input.Keys.DPAD_UP))
-            razorback.jump();
-		
-		if (justTyped(Input.Keys.CONTROL_LEFT))
-		//if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT))
-            razorback.dash();		
-		
 		/**
 		 * Have box2d update the positions and velocities (and etc) of all
 		 * tracked objects. The second and third argument specify the number of
@@ -280,6 +276,7 @@ public class Game implements ApplicationListener {
 			try {
 				Thread.sleep(30 - (now - lastRender) / 1000000);
 				lastkey = -1;
+				System.out.println("new frame");
 			} catch (InterruptedException e) {
 			}
 		}
@@ -320,12 +317,62 @@ public class Game implements ApplicationListener {
 
 	public boolean justTyped(int key)
 	{
-		if ((Gdx.input.isKeyPressed(key)) && (key != lastkey))
-		{
-			lastkey = key;
-			return true;
-		}
-		else
-			return false; 
+		return false;
 	}
+
+	@Override
+	public boolean keyDown(int keycode) {
+		// TODO Auto-generated method stub
+		if(keycode==Keys.DPAD_UP){
+			razorback.jump();
+		}
+		if(keycode==Keys.CONTROL_LEFT){
+			razorback.dash();
+		}
+		return true;
+	}
+
+	@Override
+	public boolean keyUp(int keycode) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean keyTyped(char character) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean touchDown(int x, int y, int pointer, int button) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean touchUp(int x, int y, int pointer, int button) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean touchDragged(int x, int y, int pointer) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean touchMoved(int x, int y) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean scrolled(int amount) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+
 }

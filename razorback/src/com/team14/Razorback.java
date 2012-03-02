@@ -36,7 +36,7 @@ public class Razorback
     private boolean dash = false;
 	private int lives;
 
-    private static final float normalXVelocity = 10.0f;
+    private static final float normalXVelocity = 2.0f;
     private static final float dashXVelocity = 20.0f;
 	public static final float PIXELS_PER_METER = 60.0f;
 
@@ -125,23 +125,26 @@ public class Razorback
 	 */
     public boolean jump(){
         long now = System.nanoTime();
-//        if ((now - jumpTimer) > 40000000) // 40ms delay, to prevent accidental double jump
+        if (grounded())
+            state = RUNNING;
+        System.out.println("Original state" + state);
         
-        {
+        
             switch (state)
             {
                 case RUNNING: 
                 case JUMP:
                     state++;
                     body.applyLinearImpulse(new Vector2(0.0f, 4.0f), body.getWorldCenter());
- //                   jumpTimer = System.nanoTime();
-                	return true;
+                    System.out.println("New state: " + state);
+                    
+                 	return true;
             
                 default:
                 	return false;
 
             }
-        }
+        
 //        return false;
    
     }
