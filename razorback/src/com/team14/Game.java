@@ -133,6 +133,7 @@ public class Game implements ApplicationListener {
     private int level = 1;
     private int lives;
     private boolean reset = true;
+    private int lastkey;
 
 	public Game(int currLevel, int livesLeft) {
 		super();
@@ -198,11 +199,13 @@ public class Game implements ApplicationListener {
 	public void render() {
 		long now = System.nanoTime();
 
-		if (Gdx.input.isKeyPressed(Input.Keys.DPAD_UP))
+		if (justTyped(Input.Keys.DPAD_UP))
+		//if (Gdx.input.isKeyPressed(Input.Keys.DPAD_UP))
             razorback.jump();
 		
-		if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT))
-            razorback.dash();
+		if (justTyped(Input.Keys.CONTROL_LEFT))
+		//if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT))
+            razorback.dash();		
 		
 		/**
 		 * Have box2d update the positions and velocities (and etc) of all
@@ -258,16 +261,6 @@ public class Game implements ApplicationListener {
 
         razorback.move(spriteBatch);
 
-        /*
-         * - THIS IS NOW TO BE IN razorback.move() - NOT TESTED YET.
-		razorback.sprite.setPosition(
-				PIXELS_PER_METER * razorback.getXPosition
-						- razorback.sprite.getWidth() / 2,
-				PIXELS_PER_METER * razorback.getYPosition
-						- razorback.sprite.getHeight() / 2);
-		razorbackSprite.draw(spriteBatch);
-        */
-
 		/**
 		 * "Flush" the sprites to screen.
 		 */
@@ -286,6 +279,7 @@ public class Game implements ApplicationListener {
 		if (now - lastRender < 30000000) { // 30 ms, ~33FPS
 			try {
 				Thread.sleep(30 - (now - lastRender) / 1000000);
+				lastkey = -1;
 			} catch (InterruptedException e) {
 			}
 		}
@@ -324,4 +318,14 @@ public class Game implements ApplicationListener {
 		return razorback.getXPosition();
 	}
 
+	public boolean justTyped(int key)
+	{
+		if ((Gdx.input.isKeyPressed(key)) && (key != lastkey))
+		{
+			lastkey = key;
+			return true;
+		}
+		else
+			return false; 
+	}
 }
