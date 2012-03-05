@@ -12,25 +12,35 @@ public class IntroScreen implements Screen
 {  
 	private SpriteBatch batch;  
 	private Texture splashTexture;
+	public GameScreen gameScreen;
 	Game game;
+	private boolean didShow = false; // For testing.
 	
 	public IntroScreen(Game g)
 	{
 		game = g;
+		gameScreen = new GameScreen(game);
 	}
       
+	public Screen getGameScreen()
+	{
+		return gameScreen;
+	}
+	
 	@Override  
 	public void show()
 	{  
 		batch = new SpriteBatch();  
 		splashTexture = new Texture(Gdx.files.internal("assets/SplashScreen.png"));
+		didShow = true;
 	}  
       
 	public void render (float delta)
 	{
 		if (Gdx.input.isKeyPressed(Keys.SPACE))
 		{
-			game.setScreen(new GameScreen(game));
+//			game.setScreen(new GameScreen(game));
+			game.setScreen(gameScreen);
 			System.out.println("Going to GameScreen...");
 		}
 		if (Gdx.input.isKeyPressed(Keys.H))
@@ -47,7 +57,12 @@ public class IntroScreen implements Screen
 		batch.draw(splashTexture, 0, 0);  
 		batch.end();  
 	}
-      
+
+	public boolean didShow()
+	{
+		return didShow;
+	}
+	
 	public void resize (int width, int height) { }  
 	public void pause () { }  
 	public void resume () { }  

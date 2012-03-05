@@ -1,39 +1,38 @@
-//Jonathan Whitmore
-
+/**
+ * @author Jonathan Whitmore
+ * File: TestSplashScreen.java
+ * Purpose: Test splash screen functionality
+ */
 package com.team14.tests;
 
 import static org.junit.Assert.*;
-import junit.framework.TestCase;
+
+
 import org.junit.Test;
-import com.badlogic.gdx.Input.Keys;
-import com.team14.Splash;
+import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 
-public class TestSplashScreen {
-
+public class TestSplashScreen
+{
+	/**
+	 * Test to ensure the splash screen(s) load and display properly.
+	 * 
+	 * As if appearing on screen wasn't enough proof.
+	 */
 	@Test
-	public void test() {
-		//creates new splash screen instance
-		Splash splash = new Splash();
+	public void test()
+	{
+		SplashStart splash = new SplashStart();
 		
-		//should just have stand in variables of -1 for each upon instantiation. testing for this
-		assertEquals(-1, splash.getWidth());
-		assertEquals(-1, splash.getHeight());
+		// Make the assertion.
+		assertFalse(splash.introScreen.didShow());
 		
-		//get rid of stand in variables. right now just changes them to specified sizes. will alter later
-		splash.create();
-		
-		//just testing for change right now
-		//will change to needed dimensions once coding begins.
-		assertNotSame(-1, splash.getWidth());
-		assertNotSame(-1, splash.getHeight());
-		
-		//want to have user start game by pressing start.
-		//for now, we will just assume that once render is ran that the user presses space to begin game immediately. 
-		assertFalse(splash.isGameStart());
-		splash.render();
-		assertTrue(splash.isGameStart());
-		
-		
-	}
+		// Now start the application, which will show the screen.
+		new LwjglApplication(splash, "Razorback Attack!", 800, 600, false);
 
+        // Wait 2s for splash screen to appear
+        try { Thread.sleep(2000); } catch(InterruptedException e) { }
+		
+        // Make the assertion.
+        assertTrue(splash.introScreen.didShow());
+	}
 }

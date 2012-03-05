@@ -8,35 +8,27 @@
  */
 package com.team14.tests;
 
-
-import com.team14.Game;
-import com.team14.Razorback;
 import static org.junit.Assert.*;
+import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 
 import org.junit.Test;
 
 public class TestScore
 {
+	/* 
+	 * Test to see if score is kept based on distance the razorback travels
+	 */
 	@Test
-	public void test() {
-		/* 
-		 * Test to see if score is kept based on distance the razorback travels
-		 */
+	public void test()
+	{
+		GameStart game = new GameStart();
+		new LwjglApplication(game, "Unit Test", 800, 600, false);
 
-		// create a new instance of the game
-		Game game = new Game(1, 3);
-		boolean b = false;
+        // Wait 2s for game to appear
+        try { Thread.sleep(2000); } catch(InterruptedException e) { }
 		
-		if(game.PIXELS_PER_METER > 0)
-		{
-			if(game.getScore() > 0)
-				b = true;
-		}
-		else
-		{
-			if(game.getScore() == 0)
-				b = true;
-		}
+		if (game.gameScreen.razorback.getXPosition() > 0)
+			assertTrue(game.gameScreen.getScore() > 0);
 	}
 
 }

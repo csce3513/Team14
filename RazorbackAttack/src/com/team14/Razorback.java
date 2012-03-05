@@ -28,10 +28,11 @@ public class Razorback
     private Texture texture;
 
 	// Razorback states
-	private static final int RUNNING = 0;
-	private static final int JUMP = 1;
-	private static final int DOUBLEJUMP = 2;
+	public static final int RUNNING = 0;
+	public static final int JUMP = 1;
+	public static final int DOUBLEJUMP = 2;
 	//private static final int DEAD = 3;
+
 	private int state = RUNNING;
 	
     private boolean dash = false;
@@ -226,6 +227,11 @@ public class Razorback
 	public int getLives()
 	{
 		return lives;
+	}
+	
+	public int getState()
+	{
+		return state;
 	}
 	
 	class DashTimerTask extends TimerTask

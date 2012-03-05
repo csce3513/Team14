@@ -10,7 +10,6 @@
  */
 package com.team14.tests;
 
-//import static org.junit.Assert.*; - not needed?
 import java.io.*;
 import java.util.Scanner;
 import junit.framework.TestCase;
@@ -24,7 +23,7 @@ public class TestInput extends TestCase
     	System.out.println("here");
 
     	Scanner input = null;
-    	input = new Scanner(new BufferedReader(new FileReader("testinput.txt")));
+    	input = new Scanner(new BufferedReader(new FileReader("tests/testinput.txt")));
 
     	// Reads input from file to mock user input.
     	int	tmp	= 0;

@@ -28,9 +28,9 @@ public class GameScreen implements Screen, InputProcessor
 	private World world;
 
 	/* This is the player character. It will be created as a dynamic object. */
-    public Razorback razorback;
+	public Razorback razorback;
 
-    /**
+	/**
 	 * Box2d works best with small values. If you use pixels directly you will
 	 * get weird results -- speeds and accelerations not feeling quite right.
 	 * Common practice is to use a constant to convert pixels to and from
@@ -98,7 +98,6 @@ public class GameScreen implements Screen, InputProcessor
 			tiledMapHelper.getCamera().position.y = tiledMapHelper.getHeight()
 					- Gdx.graphics.getHeight() / 2;
 		}
-//		System.out.println("(" + tiledMapHelper.getCamera().position.x + ", " + tiledMapHelper.getCamera().position.y + ")");
 
 		tiledMapHelper.getCamera().update();
 		tiledMapHelper.render();
@@ -185,6 +184,8 @@ public class GameScreen implements Screen, InputProcessor
 
 			lastRender = System.nanoTime();
 			Gdx.input.setInputProcessor(this);
+
+
 			initialized = true;
 		}
 	}

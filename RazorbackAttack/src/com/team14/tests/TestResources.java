@@ -1,4 +1,4 @@
-package com.team14;
+package com.team14.tests;
 
 import static org.junit.Assert.*;
 import com.badlogic.gdx.Gdx;
