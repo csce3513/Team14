@@ -14,12 +14,14 @@ public class IntroScreen implements Screen
 	private Texture splashTexture;
 	public GameScreen gameScreen;
 	Game game;
+	private GameInfo info;
 	private boolean didShow = false; // For testing.
 	
 	public IntroScreen(Game g)
 	{
+		info = new GameInfo();
 		game = g;
-		gameScreen = new GameScreen(game);
+		gameScreen = new GameScreen(game, info);
 	}
       
 	public Screen getGameScreen()

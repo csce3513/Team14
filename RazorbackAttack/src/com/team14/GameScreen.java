@@ -50,9 +50,11 @@ public class GameScreen implements Screen, InputProcessor
 	private Game game;
 	private int lives;
 	private boolean initialized = false;
+	private GameInfo info;
 	
-	public GameScreen(Game g)
+	public GameScreen(Game g, GameInfo i)
 	{
+		info = i;
 		game = g;
 		screenWidth = -1;	// Defer until create() when Gdx is initialized.
 		screenHeight = -1;
@@ -125,6 +127,16 @@ public class GameScreen implements Screen, InputProcessor
 		// "Flush" the sprites to screen.
 		spriteBatch.end();
 
+		// Check for collision
+				if (razorback.getXVelocity() <= 0.0f)
+				{
+					info.loseLife(score);
+/*				if (info.gameOver())
+						game.setScreen(gameOverScreen);
+					else
+						game.setScreen(lifeLostScreen);
+*/				}
+		
 		now = System.nanoTime();
 		if (now - lastRender < 30000000) // 30 ms, ~33FPS
 		{
