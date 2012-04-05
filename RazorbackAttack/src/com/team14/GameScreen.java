@@ -19,7 +19,12 @@ public class GameScreen implements Screen, InputProcessor
 	private TiledMapHelper tiledMapHelper;
 
 	/* The libgdx SpriteBatch -- used to optimize sprite drawing. */
-	private SpriteBatch spriteBatch;
+	private SpriteBatch worldBatch;
+
+	/**
+	 * The libgdx SpriteBatch for the heads up display (score+lives)
+	 */
+	private SpriteBatch hudBatch;
 
 	/**
 	 * This is the main box2d "container" object. All bodies will be loaded in
@@ -45,7 +50,6 @@ public class GameScreen implements Screen, InputProcessor
 	 */
 	private int screenWidth;
 	private int screenHeight;
-	private BitmapFont font;
 	private boolean gameOver = false;
 	private Game game;
 	private int lives;
@@ -53,6 +57,12 @@ public class GameScreen implements Screen, InputProcessor
 	private GameInfo info;
 	public LifeLostScreen lifeLostScreen;
 	public GameOverScreen gameOverScreen;
+	
+	/**
+	 * The camera responsible for showing the score and lives above the acutal game
+	 */
+	private HUDCamera hudCamera;
+	private BitmapFont font;
 	
 	public GameScreen(Game g, GameInfo i)
 	{
@@ -65,7 +75,7 @@ public class GameScreen implements Screen, InputProcessor
 		lifeLostScreen = new LifeLostScreen(game, info, this);
 	}
 	
-	public void update()
+	public void updateWorld()
 	{
 		/**
 		 * Have box2d update the positions and velocities (and etc) of all
@@ -108,7 +118,17 @@ public class GameScreen implements Screen, InputProcessor
 
 		tiledMapHelper.getCamera().update();
 		tiledMapHelper.render();
-		spriteBatch.setProjectionMatrix(tiledMapHelper.getCamera().combined);		
+		worldBatch.setProjectionMatrix(tiledMapHelper.getCamera().combined);		
+	}
+	
+	/**
+	 * Get new score and lives, update on HUD camera
+	 */
+	public void updateHUD()
+	{
+		hudCamera.getCamera().update();
+		hudCamera.render();
+		hudBatch.setProjectionMatrix(hudCamera.getCamera().combined);
 	}
 
 	@Override
@@ -117,26 +137,29 @@ public class GameScreen implements Screen, InputProcessor
 		System.out.println("gamescreen.render: " + this.toString());
 		long now = System.nanoTime();
 		
-		// Update tilemap + camera position
-		update();
+		/**
+		 * First we update the tilemap and razorback. Then we display them. 
+		 */ 
+		updateWorld();		// Update tilemap + camera position, HUD camera
+		worldBatch.begin();	// Prepare the world and razorback SpriteBatch for drawing.
+		razorback.move(worldBatch);
+		worldBatch.end();	// "Flush" the sprites to screen.
 		
-		// Prepare the SpriteBatch for drawing.
-		spriteBatch.begin();
-		
-		int score = (int) getScore();
-		String s = Integer.toString(score);
-		CharSequence str = "Score: " + s;
+		/**
+		 * Now we update the score and lives, then display them.
+		 */
+		updateHUD();
+		hudBatch.begin();
+		float fps = 1f / Gdx.graphics.getDeltaTime();
+		CharSequence str = "Lives: " + info.lives() +  "  Score: " + Integer.toString((int) getScore()) + ", FPS: " + Integer.toString((int) fps);
 		font.setColor(1.0f, 1.0f, 1.0f, 1.0f);
-		font.draw(spriteBatch, str, (int) PIXELS_PER_METER * razorback.getXPosition(), 550);
-		razorback.move(spriteBatch);
-
-		// "Flush" the sprites to screen.
-		spriteBatch.end();
+		font.draw(hudBatch, str, 50, 550);
+		hudBatch.end();
 
 		// Check for collision
 				if (razorback.getXVelocity() <= 0.0f)
 				{
-					info.loseLife(score);
+					info.loseLife((int)getScore());
 				if (info.gameOver())
 						game.setScreen(gameOverScreen);
 					else
@@ -187,7 +210,7 @@ public class GameScreen implements Screen, InputProcessor
 			tiledMapHelper.loadMap("assets/tiles/testmap.tmx");
 			tiledMapHelper.prepareCamera(screenWidth, screenHeight);
 
-			spriteBatch = new SpriteBatch();
+			worldBatch = new SpriteBatch();
 
 			/**
 			 * You can set the world's gravity in its constructor. Here, the gravity
@@ -203,7 +226,12 @@ public class GameScreen implements Screen, InputProcessor
 
 			lastRender = System.nanoTime();
 			Gdx.input.setInputProcessor(this);
-
+			/**
+			 * Initialize objects needed to draw score and lives
+			 */
+			hudCamera = new HUDCamera();
+			hudCamera.prepareCamera(screenWidth, screenHeight);
+			hudBatch = new SpriteBatch();
 
 			initialized = true;
 		}
