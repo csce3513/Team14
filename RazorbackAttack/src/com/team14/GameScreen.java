@@ -51,6 +51,8 @@ public class GameScreen implements Screen, InputProcessor
 	private int lives;
 	private boolean initialized = false;
 	private GameInfo info;
+	public LifeLostScreen lifeLostScreen;
+	public GameOverScreen gameOverScreen;
 	
 	public GameScreen(Game g, GameInfo i)
 	{
@@ -58,6 +60,9 @@ public class GameScreen implements Screen, InputProcessor
 		game = g;
 		screenWidth = -1;	// Defer until create() when Gdx is initialized.
 		screenHeight = -1;
+		
+		gameOverScreen = new GameOverScreen(game, info);
+		lifeLostScreen = new LifeLostScreen(game, info, this);
 	}
 	
 	public void update()
@@ -109,6 +114,7 @@ public class GameScreen implements Screen, InputProcessor
 	@Override
 	public void render(float delta)
 	{
+		System.out.println("gamescreen.render: " + this.toString());
 		long now = System.nanoTime();
 		
 		// Update tilemap + camera position
@@ -131,11 +137,11 @@ public class GameScreen implements Screen, InputProcessor
 				if (razorback.getXVelocity() <= 0.0f)
 				{
 					info.loseLife(score);
-/*				if (info.gameOver())
+				if (info.gameOver())
 						game.setScreen(gameOverScreen);
 					else
 						game.setScreen(lifeLostScreen);
-*/				}
+				}
 		
 		now = System.nanoTime();
 		if (now - lastRender < 30000000) // 30 ms, ~33FPS
@@ -159,6 +165,7 @@ public class GameScreen implements Screen, InputProcessor
 	@Override
 	public void show()
 	{
+		System.out.println("gamescreen.show()");
 		/**
 		 * Only initialize on first call
 		 */

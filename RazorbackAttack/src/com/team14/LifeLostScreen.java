@@ -8,26 +8,21 @@ import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.Texture;  
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;  
 
-public class IntroScreen implements Screen
+public class LifeLostScreen implements Screen
 {  
 	private SpriteBatch batch;  
 	private Texture splashTexture;
-	public GameScreen gameScreen;
+	public GameScreen gameScreen, oldGameScreen;
 	Game game;
-	private GameInfo info;
+	GameInfo info;
 	private boolean didShow = false; // For testing.
 	
-	
-	public IntroScreen(Game g)
+	public LifeLostScreen(Game g, GameInfo i, GameScreen gs)
 	{
-	//	info = new GameInfo();
 		game = g;
-	//	gameScreen = new GameScreen(game, info);
-	}
-      
-	public Screen getGameScreen()
-	{
-		return gameScreen;
+		info = i;
+		oldGameScreen = gs;
+//		gameScreen = new GameScreen(game);
 	}
 	
 	@Override  
@@ -36,31 +31,23 @@ public class IntroScreen implements Screen
 		batch = new SpriteBatch();  
 		splashTexture = new Texture(Gdx.files.internal("assets/SplashScreen.png"));
 		didShow = true;
-		info = new GameInfo();
+		oldGameScreen = null;
 		gameScreen = new GameScreen(game, info);
+		System.out.println("in lifelostscreen");
+		System.out.println(gameScreen.toString());
 	}  
       
 	public void render (float delta)
 	{
-		if (Gdx.input.isKeyPressed(Keys.SPACE))
-		{
-//			game.setScreen(new GameScreen(game));
-			game.setScreen(gameScreen);
-			System.out.println("Going to GameScreen...");
-		}
-		if (Gdx.input.isKeyPressed(Keys.H))
-		{
-			game.setScreen(new HelpScreen(game, this));
-			System.out.println("Going to HelpScreen...");
-		}
-		if (Gdx.input.isKeyPressed(Keys.ESCAPE))
-		{
-			
-		}
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT); // This cryptic line clears the screen.  
 		batch.begin();  
 		batch.draw(splashTexture, 0, 0);  
-		batch.end();  
+		batch.end();
+		if (Gdx.input.isKeyPressed(Keys.ESCAPE))
+		{
+			System.out.println("Going to new gamescreen...");
+			game.setScreen(gameScreen);
+		}
 	}
 
 	public boolean didShow()
@@ -72,5 +59,8 @@ public class IntroScreen implements Screen
 	public void pause () { }  
 	public void resume () { }  
 	public void dispose () { }  
-	public void hide() { }  
+	public void hide()
+	{ 
+		didShow = false;
+	}  
 }  
