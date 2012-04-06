@@ -14,7 +14,7 @@ public class GameInfo {
 	public GameInfo()
 	{
 		// livesRemaining does not include the currentLife
-		livesRemaining = MAXLIVES - 1;
+		livesRemaining = MAXLIVES;// - 1;
 		// array of integers to keep track of score for each life
 		for (int i = 0; i < MAXLIVES; i++)
 			scores[i] = 0;

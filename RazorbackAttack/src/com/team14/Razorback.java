@@ -16,13 +16,9 @@ import java.util.TimerTask;
 
 /**
  *  Razorback.java
- * 
- * Create an instance with getInstance() instead of constructor.
- * Using singleton only as an excuse for another JUnit test.
  */
 public class Razorback
 {
-	private static Razorback instance = null;
     private Body body;
     private Sprite sprite;
     private Texture texture;
@@ -44,7 +40,7 @@ public class Razorback
 
     private Timer dashTimer = new Timer();
 
-	protected Razorback(World world, int livesLeft)
+	public Razorback(World world, int livesLeft)
     {
         super();
         lives = livesLeft;
@@ -91,22 +87,6 @@ public class Razorback
 
 		body.setLinearVelocity(new Vector2(normalXVelocity, 0.0f));
         }
-	}
-
-	/*
-	 * TODO:
-	 * add parameter for map in which we are placed
-	 * add parameters for initial x and y coordinates
-	 * 
-	 * pass these parameters to constructor
-	 */
-	public static Razorback getInstance(World world, int livesLeft)
-	{
-		if (instance == null)
-		{
-			instance = new Razorback(world, livesLeft);
-		}
-		return instance;
 	}
 
 	public void move(SpriteBatch spriteBatch)

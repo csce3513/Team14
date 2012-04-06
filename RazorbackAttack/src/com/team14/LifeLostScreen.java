@@ -31,10 +31,11 @@ public class LifeLostScreen implements Screen
 		batch = new SpriteBatch();  
 		splashTexture = new Texture(Gdx.files.internal("assets/SplashScreen.png"));
 		didShow = true;
-		oldGameScreen = null;
-		gameScreen = new GameScreen(game, info);
+//		oldGameScreen = null;
+//		gameScreen = new GameScreen(game, info);
+		gameScreen = null;
 		System.out.println("in lifelostscreen");
-		System.out.println(gameScreen.toString());
+		//System.out.println(gameScreen.toString());
 	}  
       
 	public void render (float delta)
@@ -45,6 +46,9 @@ public class LifeLostScreen implements Screen
 		batch.end();
 		if (Gdx.input.isKeyPressed(Keys.ESCAPE))
 		{
+			oldGameScreen = null;
+			gameScreen = new GameScreen(game, info);
+
 			System.out.println("Going to new gamescreen...");
 			game.setScreen(gameScreen);
 		}

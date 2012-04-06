@@ -155,16 +155,24 @@ public class GameScreen implements Screen, InputProcessor
 		font.setColor(1.0f, 1.0f, 1.0f, 1.0f);
 		font.draw(hudBatch, str, 50, 550);
 		hudBatch.end();
-
+		System.out.println(razorback.toString() + "vel: " + razorback.getXVelocity() + ", pos: " + razorback.getXPosition());
 		// Check for collision
-				if (razorback.getXVelocity() <= 0.0f)
-				{
-					info.loseLife((int)getScore());
-				if (info.gameOver())
-						game.setScreen(gameOverScreen);
-					else
-						game.setScreen(lifeLostScreen);
-				}
+		if (razorback.getXVelocity() <= 0.0f)
+		{
+			// Tell the GameInfo object that we're dead, and wish to record a new score 
+			info.loseLife((int) getScore());
+			
+			if (info.gameOver())
+			{
+				System.out.println("game over, man. game over.");
+				game.setScreen(gameOverScreen);
+			}
+			else
+			{
+				System.out.println("life lost, man. life lost.");
+				game.setScreen(lifeLostScreen);
+			}
+		}
 		
 		now = System.nanoTime();
 		if (now - lastRender < 30000000) // 30 ms, ~33FPS
@@ -182,7 +190,6 @@ public class GameScreen implements Screen, InputProcessor
 	@Override
 	public void resize(int width, int height) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -218,7 +225,7 @@ public class GameScreen implements Screen, InputProcessor
 			 */
 			world = new World(new Vector2(0.0f, -10.0f), true);
 
-			razorback = Razorback.getInstance(world, lives);
+			razorback = new Razorback(world, lives);
 			font = new BitmapFont();
 
 			tiledMapHelper.loadCollisions("assets/collisions.txt", world,
@@ -226,6 +233,7 @@ public class GameScreen implements Screen, InputProcessor
 
 			lastRender = System.nanoTime();
 			Gdx.input.setInputProcessor(this);
+
 			/**
 			 * Initialize objects needed to draw score and lives
 			 */
