@@ -28,7 +28,7 @@ public class GameOverScreen implements Screen
 	public void show()
 	{  
 		batch = new SpriteBatch();  
-		splashTexture = new Texture(Gdx.files.internal("assets/SplashScreen.png"));
+		splashTexture = new Texture(Gdx.files.internal("assets/EndGame.png"));
 		didShow = true;
 		//gameScreen = new GameScreen(game, info);
 		introScreen = new IntroScreen(game);
@@ -40,7 +40,7 @@ public class GameOverScreen implements Screen
 		batch.begin();  
 		batch.draw(splashTexture, 0, 0);  
 		batch.end();
-		if (Gdx.input.isKeyPressed(Keys.ESCAPE))
+		if (Gdx.input.isKeyPressed(Keys.SPACE))
 		{
 			System.out.println("Going to previous screen...");
 			game.setScreen(introScreen);

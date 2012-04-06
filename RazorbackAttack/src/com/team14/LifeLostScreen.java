@@ -29,7 +29,7 @@ public class LifeLostScreen implements Screen
 	public void show()
 	{  
 		batch = new SpriteBatch();  
-		splashTexture = new Texture(Gdx.files.internal("assets/SplashScreen.png"));
+		splashTexture = new Texture(Gdx.files.internal("assets/EndLife.png"));
 		didShow = true;
 //		oldGameScreen = null;
 //		gameScreen = new GameScreen(game, info);
