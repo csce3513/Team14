@@ -52,7 +52,6 @@ public class GameScreen implements Screen, InputProcessor
 	private int screenHeight;
 	private boolean gameOver = false;
 	private Game game;
-	private int lives;
 	private boolean initialized = false;
 	private GameInfo info;
 	public LifeLostScreen lifeLostScreen;
@@ -225,7 +224,7 @@ public class GameScreen implements Screen, InputProcessor
 			 */
 			world = new World(new Vector2(0.0f, -10.0f), true);
 
-			razorback = new Razorback(world, lives);
+			razorback = new Razorback(world);
 			font = new BitmapFont();
 
 			tiledMapHelper.loadCollisions("assets/collisions.txt", world,

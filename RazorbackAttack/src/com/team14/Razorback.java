@@ -22,7 +22,6 @@ import java.util.TimerTask;
  */
 public class Razorback
 {
-	private static Razorback instance = null;
     private Body body;
 
     /* Razorback sprite animation variables */
@@ -45,7 +44,6 @@ public class Razorback
 	private int prevState = RUNNING;
 	
     private boolean dash = false;
-	private int lives;
 
     private static final float normalXVelocity = 8.0f;
     private static final float dashXVelocity = 13.0f;
@@ -53,10 +51,9 @@ public class Razorback
 
     private Timer dashTimer = new Timer();
 
-	protected Razorback(World world, int livesLeft)
+	protected Razorback(World world)
     {
         super();
-        lives = livesLeft;
 
         /**
          * Load up the texture sheet, create sprites from it.
@@ -127,20 +124,6 @@ public class Razorback
         setXVelocity(normalXVelocity);
 	}
 
-	/*
-	 * TODO:
-	 * add parameters for initial x and y coordinates
-	 * 
-	 * pass these parameters to constructor
-	 */
-	public static Razorback getInstance(World world, int livesLeft)
-	{
-		if (instance == null)
-		{
-			instance = new Razorback(world, livesLeft);
-		}
-		return instance;
-	}
 
 	public void move(SpriteBatch spriteBatch)
 	{
@@ -274,24 +257,6 @@ public class Razorback
     	return body.getPosition().y;
     }
   
-	/**
-     * Methods related to lives.
-     */
-    public void loseLife()
-	{
-		lives--;
-	}
-
-    public void oneUp()
-    {
-        lives++;
-    }
-
-	public int getLives()
-	{
-		return lives;
-	}
-	
 	public int getState()
 	{
 		return state;
