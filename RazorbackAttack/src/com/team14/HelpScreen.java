@@ -3,7 +3,9 @@ package com.team14;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.Files.FileType;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -14,7 +16,8 @@ public class HelpScreen implements Screen
 	private Texture helpTexture;
 	Game game;
 	Screen prevScreen; 
-
+	private Music music;
+	
 	public HelpScreen(Game g, Screen s)
 	{
 		game = g;
@@ -25,6 +28,12 @@ public class HelpScreen implements Screen
 	public void show() {
 		batch = new SpriteBatch();  
 		helpTexture = new Texture(Gdx.files.internal("assets/HelpScreen.png"));
+        music = Gdx.audio.newMusic(Gdx.files.getFileHandle("assets/music/pause.mp3", FileType.Internal));
+        if (music != null)
+        {
+        	music.setLooping(true);
+        	music.play();
+        }
 	}
 	
 	@Override
@@ -48,8 +57,8 @@ public class HelpScreen implements Screen
 
 	@Override
 	public void hide() {
-		// TODO Auto-generated method stub
-		
+		if (music != null)
+			music.pause();
 	}
 
 	@Override
@@ -66,8 +75,7 @@ public class HelpScreen implements Screen
 
 	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
-		
+		music.dispose();
 	}
 
 }

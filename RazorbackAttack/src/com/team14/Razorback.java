@@ -11,6 +11,7 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
+import java.util.BitSet;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -22,6 +23,7 @@ import java.util.TimerTask;
  */
 public class Razorback
 {
+	private World world;
     private Body body;
 
     /* Razorback sprite animation variables */
@@ -35,28 +37,26 @@ public class Razorback
     private float stateTime;
 
 	/* Razorback states */
+    private BitSet state; 
+
 	public static final int RUNNING = 0;
 	public static final int JUMP = 1;
 	public static final int DOUBLEJUMP = 2;
 	public static final int DASH = 3;
 	public static final int DEAD = 4;
-	private int state = RUNNING;
-	private int prevState = RUNNING;
-	
-    private boolean dash = false;
 
-    private static final float normalXVelocity = 8.0f;
-    private static final float dashXVelocity = 13.0f;
+    public static final float normalXVelocity = 8.0f;
+    public static final float dashXVelocity = 13.0f;
 	public static final float PIXELS_PER_METER = 60.0f;
 
-    private Timer dashTimer = new Timer();
+    private Timer dashTimer;
 
-	protected Razorback(World world)
+	protected Razorback(World w)
     {
         super();
 
         /**
-         * Load up the texture sheet, create sprites from it.
+         * Load up the texture sheets, create sprites from it.
          */
         walkSheet = new Texture(Gdx.files.internal("assets/animation_sheet.png"));
         walkAnimation = new Animation(0.075f, //25f,
@@ -72,7 +72,7 @@ public class Razorback
                 new TextureRegion(walkSheet, 208, 0, 69, 56),
                 new TextureRegion(walkSheet, 277, 0, 65, 56));
         dashSheet = new Texture(Gdx.files.internal("assets/dash_sheet.png"));
-        dashAnimation = new Animation(0.075f, //25f,
+        dashAnimation = new Animation(0.150f, //25f,
                 new TextureRegion(dashSheet, 0, 0, 60, 70),
                 new TextureRegion(dashSheet, 60, 0, 68, 70),
                 new TextureRegion(dashSheet, 128, 0, 68, 70),
@@ -92,14 +92,13 @@ public class Razorback
         /* Default start position */
         bodyDef.position.set(1.0f, 7.0f);
 
-        body = world.createBody(bodyDef);
+        body = w.createBody(bodyDef);
 
         /**
          * Boxes are defined by their "half width" and "half height", hence the 2 multiplier.
          */
         PolygonShape shape = new PolygonShape();
         shape.setAsBox(69 / (2 * PIXELS_PER_METER), 56 / (2 * PIXELS_PER_METER));
-        System.out.println("6");
 
         /**
          * The character should not ever spin around on impact.
@@ -118,8 +117,12 @@ public class Razorback
 
 		body.createFixture(fixtureDef);
 		shape.dispose();
-        System.out.println("7");
 
+		world = w;
+		state = new BitSet();
+		state.set(RUNNING);
+		
+        dashTimer = new Timer();
         /* Set default start velocity */
         setXVelocity(normalXVelocity);
 	}
@@ -127,33 +130,41 @@ public class Razorback
 
 	public void move(SpriteBatch spriteBatch)
 	{
-        if (grounded())
-            state = RUNNING;
+    	if ((grounded()) && (!state.get(DASH)))
+        {
+            state.set(RUNNING);
+            state.set(JUMP, false);
+            state.set(DOUBLEJUMP, false);
+        }
+
+//        if (grounded())
+//        {
+//            state.set(RUNNING);
+//            System.out.println("Grounded");
+//        }
+//        else
+//        	System.out.println("Not Grounded");
         stateTime += Gdx.graphics.getDeltaTime();
 
-        /* Determine animation based on Razorback state */
-        switch (state)
+        /* Determine animation based on Razorback state */        
+        if (state.get(DASH))
         {
-        	case DASH:
-        		currentFrame = dashAnimation.getKeyFrame(stateTime, true);
-        		break;
-        	case RUNNING:
-                currentFrame = walkAnimation.getKeyFrame(stateTime, true);
-                break;
-        	case JUMP:
-        	case DOUBLEJUMP:
-        		currentFrame = jumpAnimation.getKeyFrame(stateTime, true);
-        		break;
-        	
-        	case DEAD:
-        		currentFrame = deathAnimation.getKeyFrame(stateTime, true);
-        		break;
-        	default:
-        		break;
+    		currentFrame = dashAnimation.getKeyFrame(stateTime, true);
+        }
+        else if ((state.get(JUMP)) || (state.get(DOUBLEJUMP)))
+        {
+            currentFrame = walkAnimation.getKeyFrame(stateTime, true);
+        }
+        else if (state.get(RUNNING))
+        {
+            currentFrame = walkAnimation.getKeyFrame(stateTime, true);        	
+        }
+        else if (state.get(DEAD))
+        {
+    		currentFrame = deathAnimation.getKeyFrame(stateTime, true);
         }
         spriteBatch.draw(currentFrame, PIXELS_PER_METER * body.getPosition().x	- 69 / 2,
         		PIXELS_PER_METER * body.getPosition().y - 56 / 2);
-        System.out.println(getXVelocity());
     }
 	
 	/**
@@ -162,31 +173,50 @@ public class Razorback
     public boolean jump()
     {
     	boolean didJump = false;
-        if (grounded())
-            state = RUNNING;
+        
+    	/** 
+    	 * Check if we've just landed
+    	 * Our grounding mechanism is based on  
+    	 */
+//		THIS IS CURRENTLY IN move(), STILL NOT PERFECTED.
+//    	if ((grounded()) && (!state.get(DASH)))
+//        {
+//            state.set(RUNNING);
+//            state.set(JUMP, false);
+//            state.set(DOUBLEJUMP, false);
+//        }
 
-        switch (state)
+    	System.out.println("JUUUUUUUUUUMP!");
+    	System.out.println("Before: " + state.toString());
+    	/* Handle the cases for each state */
+    	if (state.get(DOUBLEJUMP))
+    	{
+    		// Do nothing - we aren't allowed to jump again.
+    	}
+    	else if (state.get(JUMP))
+    	{
+    		state.set(DOUBLEJUMP);
+    		setYVelocity(7.0f);
+    		didJump = true;
+    	}
+    	else if (state.get(DASH))
+    	{
+    		if (!state.get(DOUBLEJUMP))
+    		{
+    			endDash();
+    			state.set(DOUBLEJUMP);
+    			setYVelocity(7.0f);
+    			didJump = true;
+    		}
+    	}
+    	else if (state.get(RUNNING))
         {
-        	case RUNNING: 
-        	case JUMP:
-        		state++;
-        		setYVelocity(7.0f);
-        		didJump = true;
-        		break;
-        	case DASH:
-        		/**
-        		 * Here we want to be able to jump out of a dash
-        		 */
-        		if (prevState != DOUBLEJUMP)
-        		{
-            		setYVelocity(7.0f);
-            		didJump = true;        			
-        		}
-        		break;
-        	case DOUBLEJUMP:
-        	default:
-        		break;
+        	state.set(RUNNING, false);
+        	state.set(JUMP);
+    		setYVelocity(7.0f);
+        	didJump = true;
         }
+    	System.out.println("After: " + state.toString());
         return didJump;
     }
 
@@ -197,16 +227,30 @@ public class Razorback
      */
     public boolean dash()
     {
-        if (!dash)
+    	boolean didDash = false;
+    	
+        if (!state.get(DASH))
         {
         	setXVelocity(dashXVelocity);
-        	dash = true;
-        	prevState = state;
-        	state = DASH;
+        	setYVelocity(0.0f);
+        	world.setGravity(new Vector2(0.0f, 0.0f));
+        	state.set(DASH);
         	dashTimer = new Timer();
         	dashTimer.schedule(new DashTimerTask(), 1000);
+        	didDash = true;
         }
-        return dash;
+        return didDash;
+    }
+
+    /**
+     * endDash(): called when dash timer is up or we wish to jump out of a dash
+     */
+    public void endDash()
+    {
+    	world.setGravity(new Vector2(0.0f, -10.0f));
+
+		state.set(DASH, false);
+		dashTimer.cancel();
     }
 
     /**
@@ -215,7 +259,7 @@ public class Razorback
      */
     public boolean grounded()
     {
-        if (Math.abs(body.getLinearVelocity().y) < 1e-9)
+        if (Math.abs(body.getLinearVelocity().y) < 1e-3)
             return true;
         else
             return false;
@@ -257,7 +301,7 @@ public class Razorback
     	return body.getPosition().y;
     }
   
-	public int getState()
+	public BitSet getState()
 	{
 		return state;
 	}
@@ -266,10 +310,7 @@ public class Razorback
 	{
 		public void run()
 		{
-			setXVelocity(normalXVelocity);
-			dash = false;
-			state = prevState;
-			dashTimer.cancel();
+			endDash();
 		}
 	}
 }

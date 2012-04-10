@@ -4,7 +4,9 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.Files.FileType;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -56,6 +58,9 @@ public class GameScreen implements Screen, InputProcessor
 	private GameInfo info;
 	public LifeLostScreen lifeLostScreen;
 	public GameOverScreen gameOverScreen;
+	private Music music;
+	private Music jumpSound;
+	private Music dashSound;
 	
 	/**
 	 * The camera responsible for showing the score and lives above the acutal game
@@ -63,15 +68,16 @@ public class GameScreen implements Screen, InputProcessor
 	private HUDCamera hudCamera;
 	private BitmapFont font;
 	
-	public GameScreen(Game g, GameInfo i)
+	public GameScreen(Game g, GameInfo i, Music m)
 	{
 		info = i;
 		game = g;
+		music = m;
 		screenWidth = -1;	// Defer until create() when Gdx is initialized.
 		screenHeight = -1;
 		
-		gameOverScreen = new GameOverScreen(game, info);
-		lifeLostScreen = new LifeLostScreen(game, info, this);
+		gameOverScreen = new GameOverScreen(game, info, music);
+		lifeLostScreen = new LifeLostScreen(game, info, music, this);
 	}
 	
 	public void updateWorld()
@@ -133,7 +139,6 @@ public class GameScreen implements Screen, InputProcessor
 	@Override
 	public void render(float delta)
 	{
-		System.out.println("gamescreen.render: " + this.toString());
 		long now = System.nanoTime();
 		
 		/**
@@ -154,8 +159,10 @@ public class GameScreen implements Screen, InputProcessor
 		font.setColor(1.0f, 1.0f, 1.0f, 1.0f);
 		font.draw(hudBatch, str, 50, 550);
 		hudBatch.end();
-		System.out.println(razorback.toString() + "vel: " + razorback.getXVelocity() + ", pos: " + razorback.getXPosition());
-		// Check for collision
+		
+		/**
+		 * Check for collision
+		 */
 		if (razorback.getXVelocity() <= 0.0f)
 		{
 			// Tell the GameInfo object that we're dead, and wish to record a new score 
@@ -173,6 +180,9 @@ public class GameScreen implements Screen, InputProcessor
 			}
 		}
 		
+		/**
+		 * Update render time
+		 */
 		now = System.nanoTime();
 		if (now - lastRender < 30000000) // 30 ms, ~33FPS
 		{
@@ -194,7 +204,6 @@ public class GameScreen implements Screen, InputProcessor
 	@Override
 	public void show()
 	{
-		System.out.println("gamescreen.show()");
 		/**
 		 * Only initialize on first call
 		 */
@@ -207,9 +216,7 @@ public class GameScreen implements Screen, InputProcessor
 			if (screenWidth == -1) {
 				screenWidth = Gdx.graphics.getWidth();
 				screenHeight = Gdx.graphics.getHeight();
-				System.out.println(screenWidth + "x" + screenHeight);
 			}
-			System.out.println(screenWidth + "x" + screenHeight);
 
 			tiledMapHelper = new TiledMapHelper();
 			tiledMapHelper.setPackerDirectory("assets/tiles");
@@ -239,34 +246,28 @@ public class GameScreen implements Screen, InputProcessor
 			hudCamera = new HUDCamera();
 			hudCamera.prepareCamera(screenWidth, screenHeight);
 			hudBatch = new SpriteBatch();
+			
+			/**
+			 * Initialize objects needed to play sounds
+			 */
+	        jumpSound = Gdx.audio.newMusic(Gdx.files.getFileHandle("assets/music/jump.wav", FileType.Internal));
+	        jumpSound.setLooping(false);
+	        jumpSound.setVolume(0.2f);	// jump.wav is pretty loud!
 
 			initialized = true;
 		}
+		
+		/**
+		 * Starts playing music after initialization. If we're already initialized
+		 * and are coming back to this screen, will play music from pause point.
+		 */
+        music.play();
 	}
 
-	@Override
-	public void hide() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void pause() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void resume() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void dispose() {
-		// TODO Auto-generated method stub
-		
-	}
+	@Override public void hide() { }
+	@Override public void pause() { }
+	@Override public void resume() { }
+	@Override public void dispose() { }
 
 	/**
 	 * InputProcessor methods
@@ -278,15 +279,15 @@ public class GameScreen implements Screen, InputProcessor
 		switch (keycode)
 		{
 			case (Keys.DPAD_UP):
-				razorback.jump();
+				if (razorback.jump())
+					jumpSound.play();
 				break;
 			case (Keys.CONTROL_LEFT):
 				razorback.dash();
 				break;
 			case (Keys.X):
 				// For now, summons a new HelpScreen
-				// TODO: Create an actual PauseScreen class+image       
-				System.out.println("Going to PauseScreen...");
+				// TODO: Create an actual PauseScreen class+image
 				game.setScreen(new HelpScreen(game, this));
 				break;
 			default:
@@ -338,15 +339,6 @@ public class GameScreen implements Screen, InputProcessor
 		return false;
 	}
 
-	/**
-	 * Methods related to game over status.
-	 * There's no need for an outside source to twiddle with our gameover status.
-	 */
-	public boolean isGameOver()
-	{
-		return gameOver;
-	}
-	
 	public float getScore()
 	{
 		return PIXELS_PER_METER * razorback.getXPosition();

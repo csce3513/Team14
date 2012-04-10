@@ -4,6 +4,7 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;  
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL10;  
 import com.badlogic.gdx.graphics.Texture;  
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;  
@@ -15,14 +16,15 @@ public class LifeLostScreen implements Screen
 	public GameScreen gameScreen, oldGameScreen;
 	Game game;
 	GameInfo info;
+	Music music;
 	private boolean didShow = false; // For testing.
 	
-	public LifeLostScreen(Game g, GameInfo i, GameScreen gs)
+	public LifeLostScreen(Game g, GameInfo i, Music m, GameScreen gs)
 	{
 		game = g;
 		info = i;
+		music = m;
 		oldGameScreen = gs;
-//		gameScreen = new GameScreen(game);
 	}
 	
 	@Override  
@@ -31,11 +33,8 @@ public class LifeLostScreen implements Screen
 		batch = new SpriteBatch();  
 		splashTexture = new Texture(Gdx.files.internal("assets/EndLife.png"));
 		didShow = true;
-//		oldGameScreen = null;
-//		gameScreen = new GameScreen(game, info);
 		gameScreen = null;
 		System.out.println("in lifelostscreen");
-		//System.out.println(gameScreen.toString());
 	}  
       
 	public void render (float delta)
@@ -47,7 +46,7 @@ public class LifeLostScreen implements Screen
 		if (Gdx.input.isKeyPressed(Keys.ESCAPE))
 		{
 			oldGameScreen = null;
-			gameScreen = new GameScreen(game, info);
+			gameScreen = new GameScreen(game, info, music);
 
 			System.out.println("Going to new gamescreen...");
 			game.setScreen(gameScreen);

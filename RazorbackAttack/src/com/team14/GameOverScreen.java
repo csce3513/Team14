@@ -4,6 +4,7 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;  
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL10;  
 import com.badlogic.gdx.graphics.Texture;  
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;  
@@ -15,12 +16,14 @@ public class GameOverScreen implements Screen
 	public IntroScreen introScreen;
 	Game game;
 	GameInfo info;
+	Music music;
 	private boolean didShow = false; // For testing.
 	
-	public GameOverScreen(Game g, GameInfo i)
+	public GameOverScreen(Game g, GameInfo i, Music m)
 	{
 		game = g;
 		info = i;
+		music = m;
 //		gameScreen = new GameScreen(game);
 	}
 	
@@ -55,9 +58,13 @@ public class GameOverScreen implements Screen
 	public void resize (int width, int height) { }  
 	public void pause () { }  
 	public void resume () { }  
-	public void dispose () { }  
+	
+	public void dispose () {
+		music.dispose();
+	}  
 	public void hide()
-	{ 
+	{
+		music.pause();
 		didShow = false;
 	}  
 }  
