@@ -195,12 +195,15 @@ public class Razorback
     	}
     	else if (state.get(JUMP))
     	{
+    		if (state.get(DASH))
+    			endDash();
     		state.set(DOUBLEJUMP);
     		setYVelocity(7.0f);
     		didJump = true;
     	}
     	else if (state.get(DASH))
     	{
+    		System.out.println("!!! Jumping in dash mode");
     		if (!state.get(DOUBLEJUMP))
     		{
     			endDash();
