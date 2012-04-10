@@ -45,7 +45,7 @@ public class Razorback
 	public static final int DASH = 3;
 	public static final int DEAD = 4;
 
-    public static final float normalXVelocity = 8.0f;
+    public static final float normalXVelocity = 4.0f;
     public static final float dashXVelocity = 13.0f;
 	public static final float PIXELS_PER_METER = 60.0f;
 
@@ -252,7 +252,8 @@ public class Razorback
     {
     	world.setGravity(new Vector2(0.0f, -10.0f));
 
-		state.set(DASH, false);
+    	this.setXVelocity(normalXVelocity);
+    	state.set(DASH, false);
 		dashTimer.cancel();
     }
 

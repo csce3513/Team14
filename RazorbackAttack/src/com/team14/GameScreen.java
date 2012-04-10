@@ -253,7 +253,7 @@ public class GameScreen implements Screen, InputProcessor
 	        jumpSound = Gdx.audio.newMusic(Gdx.files.getFileHandle("assets/music/jump.wav", FileType.Internal));
 	        jumpSound.setLooping(false);
 	        jumpSound.setVolume(0.2f);	// jump.wav is pretty loud!
-
+	        razorback.setXVelocity(30.0f);
 			initialized = true;
 		}
 		
@@ -261,7 +261,8 @@ public class GameScreen implements Screen, InputProcessor
 		 * Starts playing music after initialization. If we're already initialized
 		 * and are coming back to this screen, will play music from pause point.
 		 */
-        music.play();
+		if (!music.isPlaying())
+			music.play();
 	}
 
 	@Override public void hide() { }
