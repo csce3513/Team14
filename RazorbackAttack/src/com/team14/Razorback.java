@@ -33,9 +33,11 @@ public class Razorback
     private Animation deathAnimation;
     private Texture walkSheet;
     private Texture dashSheet;
+    private Texture deathSheet;
     private TextureRegion currentFrame;
     private float stateTime;
-
+    private float dieTime = 0.0f;
+    
 	/* Razorback states */
     private BitSet state; 
 
@@ -43,7 +45,8 @@ public class Razorback
 	public static final int JUMP = 1;
 	public static final int DOUBLEJUMP = 2;
 	public static final int DASH = 3;
-	public static final int DEAD = 4;
+	public static final int DIE = 4;
+	public static final int DEAD = 5;
 
     public static final float normalXVelocity = 4.0f;
     public static final float dashXVelocity = 13.0f;
@@ -77,12 +80,38 @@ public class Razorback
                 new TextureRegion(dashSheet, 60, 0, 68, 70),
                 new TextureRegion(dashSheet, 128, 0, 68, 70),
                 new TextureRegion(dashSheet, 196, 0, 70, 72));
-        deathAnimation = new Animation(0.075f, //25f,
-                new TextureRegion(walkSheet, 0, 0, 69, 56),
-                new TextureRegion(walkSheet, 70, 0, 138, 56),
-                new TextureRegion(walkSheet, 139, 0, 207, 56),
-                new TextureRegion(walkSheet, 208, 0, 276, 56),
-                new TextureRegion(walkSheet, 277, 0, 341, 56));
+        deathSheet = new Texture(Gdx.files.internal("assets/death_sheet.png"));
+        deathAnimation = new Animation(0.05f, //25f,
+                new TextureRegion(deathSheet, 0, 0, 75, 82),
+                new TextureRegion(deathSheet, 75, 0, 85, 82),
+                new TextureRegion(deathSheet, 162, 0, 100, 82),
+                new TextureRegion(deathSheet, 262, 0, 80, 82),
+                new TextureRegion(deathSheet, 342, 0, 89, 82),
+		        new TextureRegion(deathSheet, 430, 0, 96, 82),
+		        new TextureRegion(deathSheet, 525, 0, 85, 82),
+		        new TextureRegion(deathSheet, 611, 0, 85, 82),
+		        new TextureRegion(deathSheet, 695, 0, 85, 82),
+		        new TextureRegion(deathSheet, 781, 0, 90, 82),
+		        new TextureRegion(deathSheet, 871, 0, 90, 82),
+                new TextureRegion(deathSheet, 960, 0, 90, 82),
+                new TextureRegion(deathSheet, 1050, 0, 90, 82),
+                new TextureRegion(deathSheet, 1140, 0, 90, 82),
+                new TextureRegion(deathSheet, 1230, 0, 90, 82),
+		        new TextureRegion(deathSheet, 1320, 0, 90, 82),
+		        new TextureRegion(deathSheet, 1410, 0, 85, 82),
+		        new TextureRegion(deathSheet, 1495, 0, 85, 82),
+		        new TextureRegion(deathSheet, 1580, 0, 90, 82),
+		        new TextureRegion(deathSheet, 1670, 0, 85, 82),
+		        new TextureRegion(deathSheet, 1755, 0, 90, 82),
+                new TextureRegion(deathSheet, 1845, 0, 85, 82),
+                new TextureRegion(deathSheet, 1930, 0, 90, 82),
+                new TextureRegion(deathSheet, 2020, 0, 85, 82),
+                new TextureRegion(deathSheet, 2105, 0, 90, 82),
+		        new TextureRegion(deathSheet, 2195, 0, 90, 82),
+		        new TextureRegion(deathSheet, 2285, 0, 85, 82),
+		        new TextureRegion(deathSheet, 2370, 0, 90, 82),
+		        new TextureRegion(deathSheet, 2460, 0, 90, 82),
+		        new TextureRegion(deathSheet, 2550, 0, 90, 82));
         stateTime = 0f;
         
         /* Now initialize */ 
@@ -144,10 +173,27 @@ public class Razorback
 //        }
 //        else
 //        	System.out.println("Not Grounded");
-        stateTime += Gdx.graphics.getDeltaTime();
 
-        /* Determine animation based on Razorback state */        
-        if (state.get(DASH))
+    	stateTime += Gdx.graphics.getDeltaTime();
+    	
+    	/* Determine animation based on Razorback state */        
+        if (state.get(DIE))
+        {
+        	currentFrame = deathAnimation.getKeyFrame(dieTime, false);
+        	dieTime += Gdx.graphics.getDeltaTime();
+
+        	if (deathAnimation.isAnimationFinished(dieTime))
+        	{
+        		System.out.println("I'm dead.");
+        		state.set(DEAD);
+        	}
+        	else
+        	{
+        		System.out.println("dead now");
+        		
+        	}
+        }
+        else if (state.get(DASH))
         {
     		currentFrame = dashAnimation.getKeyFrame(stateTime, true);
         }
@@ -159,10 +205,7 @@ public class Razorback
         {
             currentFrame = walkAnimation.getKeyFrame(stateTime, true);        	
         }
-        else if (state.get(DEAD))
-        {
-    		currentFrame = deathAnimation.getKeyFrame(stateTime, true);
-        }
+
         spriteBatch.draw(currentFrame, PIXELS_PER_METER * body.getPosition().x	- 69 / 2,
         		PIXELS_PER_METER * body.getPosition().y - 56 / 2);
     }
@@ -309,7 +352,19 @@ public class Razorback
 	{
 		return state;
 	}
+	public void setState(int i)
+	{
+		state.set(i);
+	}
 	
+	public boolean isDying()
+	{
+		return state.get(DIE);
+	}
+	public boolean isDead()
+	{
+		return state.get(DEAD);
+	}
 	class DashTimerTask extends TimerTask
 	{
 		public void run()

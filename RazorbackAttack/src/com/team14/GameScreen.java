@@ -165,7 +165,13 @@ public class GameScreen implements Screen, InputProcessor
 		 */
 		if (razorback.getXVelocity() <= 0.0f)
 		{
-			// Tell the GameInfo object that we're dead, and wish to record a new score 
+			// Tell the GameInfo object that we're dead, and wish to record a new score
+			razorback.setState(4);
+			System.out.println("dying = " + razorback.isDying());
+			
+			if (razorback.isDead())
+			{
+				System.out.println("dead = " + razorback.isDead());
 			info.loseLife((int) getScore());
 			
 			if (info.gameOver())
@@ -177,6 +183,7 @@ public class GameScreen implements Screen, InputProcessor
 			{
 				System.out.println("life lost, man. life lost.");
 				game.setScreen(lifeLostScreen);
+			}
 			}
 		}
 		
