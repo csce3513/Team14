@@ -34,6 +34,7 @@ public class Razorback
     private Texture walkSheet;
     private Texture dashSheet;
     private Texture deathSheet;
+    private Texture jumpSheet;
     private TextureRegion currentFrame;
     private float stateTime;
     private float dieTime = 0.0f;
@@ -68,12 +69,10 @@ public class Razorback
                 new TextureRegion(walkSheet, 139, 0, 69, 56),
                 new TextureRegion(walkSheet, 208, 0, 69, 56),
                 new TextureRegion(walkSheet, 277, 0, 65, 56));
-        jumpAnimation = new Animation(0.075f, //25f,
-                new TextureRegion(walkSheet, 0, 0, 69, 56),
-                new TextureRegion(walkSheet, 70, 0, 69, 56),
-                new TextureRegion(walkSheet, 139, 0, 69, 56),
-                new TextureRegion(walkSheet, 208, 0, 69, 56),
-                new TextureRegion(walkSheet, 277, 0, 65, 56));
+        jumpSheet = new Texture(Gdx.files.internal("assets/jump_sheet.png"));
+        jumpAnimation = new Animation(.85f, //25f,
+                new TextureRegion(jumpSheet, 0, 0, 95, 55),
+                new TextureRegion(jumpSheet, 95, 0, 95, 55));
         dashSheet = new Texture(Gdx.files.internal("assets/dash_sheet.png"));
         dashAnimation = new Animation(0.150f, //25f,
                 new TextureRegion(dashSheet, 0, 0, 60, 70),
@@ -82,36 +81,32 @@ public class Razorback
                 new TextureRegion(dashSheet, 196, 0, 70, 72));
         deathSheet = new Texture(Gdx.files.internal("assets/death_sheet.png"));
         deathAnimation = new Animation(0.05f, //25f,
-                new TextureRegion(deathSheet, 0, 0, 75, 82),
-                new TextureRegion(deathSheet, 75, 0, 85, 82),
-                new TextureRegion(deathSheet, 162, 0, 100, 82),
-                new TextureRegion(deathSheet, 262, 0, 80, 82),
-                new TextureRegion(deathSheet, 342, 0, 89, 82),
-		        new TextureRegion(deathSheet, 430, 0, 96, 82),
-		        new TextureRegion(deathSheet, 525, 0, 85, 82),
-		        new TextureRegion(deathSheet, 611, 0, 85, 82),
-		        new TextureRegion(deathSheet, 695, 0, 85, 82),
-		        new TextureRegion(deathSheet, 781, 0, 90, 82),
-		        new TextureRegion(deathSheet, 871, 0, 90, 82),
-                new TextureRegion(deathSheet, 960, 0, 90, 82),
-                new TextureRegion(deathSheet, 1050, 0, 90, 82),
-                new TextureRegion(deathSheet, 1140, 0, 90, 82),
-                new TextureRegion(deathSheet, 1230, 0, 90, 82),
-		        new TextureRegion(deathSheet, 1320, 0, 90, 82),
-		        new TextureRegion(deathSheet, 1410, 0, 85, 82),
-		        new TextureRegion(deathSheet, 1495, 0, 85, 82),
-		        new TextureRegion(deathSheet, 1580, 0, 90, 82),
-		        new TextureRegion(deathSheet, 1670, 0, 85, 82),
-		        new TextureRegion(deathSheet, 1755, 0, 90, 82),
-                new TextureRegion(deathSheet, 1845, 0, 85, 82),
-                new TextureRegion(deathSheet, 1930, 0, 90, 82),
-                new TextureRegion(deathSheet, 2020, 0, 85, 82),
-                new TextureRegion(deathSheet, 2105, 0, 90, 82),
-		        new TextureRegion(deathSheet, 2195, 0, 90, 82),
-		        new TextureRegion(deathSheet, 2285, 0, 85, 82),
-		        new TextureRegion(deathSheet, 2370, 0, 90, 82),
-		        new TextureRegion(deathSheet, 2460, 0, 90, 82),
-		        new TextureRegion(deathSheet, 2550, 0, 90, 82));
+                new TextureRegion(deathSheet, 0, 0, 64, 64),
+                new TextureRegion(deathSheet, 64, 0, 64, 64),
+                new TextureRegion(deathSheet, 128, 0, 64, 64),
+                new TextureRegion(deathSheet, 192, 0, 64, 64),
+                new TextureRegion(deathSheet, 256, 0, 64, 64),
+                new TextureRegion(deathSheet, 0, 64, 64, 64),
+                new TextureRegion(deathSheet, 64, 64, 64, 64),
+                new TextureRegion(deathSheet, 128, 64, 64, 64),
+                new TextureRegion(deathSheet, 192, 64, 64, 64),
+                new TextureRegion(deathSheet, 256, 64, 64, 64),
+                new TextureRegion(deathSheet, 0, 128, 64, 64),
+                new TextureRegion(deathSheet, 64, 128, 64, 64),
+                new TextureRegion(deathSheet, 128, 128, 64, 64),
+                new TextureRegion(deathSheet, 192, 128, 64, 64),
+                new TextureRegion(deathSheet, 256, 128, 64, 64),
+                new TextureRegion(deathSheet, 0, 192, 64, 64),
+                new TextureRegion(deathSheet, 64, 192, 64, 64),
+                new TextureRegion(deathSheet, 128, 192, 64, 64),
+                new TextureRegion(deathSheet, 192, 192, 64, 64),
+                new TextureRegion(deathSheet, 256, 192, 64, 64),
+                new TextureRegion(deathSheet, 0, 256, 64, 64),
+                new TextureRegion(deathSheet, 64, 256, 64, 64),
+                new TextureRegion(deathSheet, 128, 256, 64, 64),
+                new TextureRegion(deathSheet, 192, 256, 64, 64),
+                new TextureRegion(deathSheet, 256, 256, 64, 64));
+        
         stateTime = 0f;
         
         /* Now initialize */ 
@@ -199,7 +194,7 @@ public class Razorback
         }
         else if ((state.get(JUMP)) || (state.get(DOUBLEJUMP)))
         {
-            currentFrame = walkAnimation.getKeyFrame(stateTime, true);
+            currentFrame = jumpAnimation.getKeyFrame(stateTime, true);
         }
         else if (state.get(RUNNING))
         {
