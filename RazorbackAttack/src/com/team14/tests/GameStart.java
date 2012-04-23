@@ -2,6 +2,7 @@ package com.team14.tests;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
+import com.team14.GameInfo;
 import com.team14.GameScreen;
 
 public class GameStart extends Game
@@ -9,10 +10,11 @@ public class GameStart extends Game
 	public GameScreen gameScreen;
 	boolean firstTimeCreate = true;
 	public Screen introScreen;
-        
+	
 	public GameStart()
 	{
-		gameScreen = new GameScreen(this);
+		GameInfo info = new GameInfo();
+		gameScreen = new GameScreen(this, info, null);
 	}
 
 	public Screen getStartScreen ()

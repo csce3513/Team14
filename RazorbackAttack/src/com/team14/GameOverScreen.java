@@ -35,6 +35,8 @@ public class GameOverScreen implements Screen
 		didShow = true;
 		//gameScreen = new GameScreen(game, info);
 		introScreen = new IntroScreen(game);
+		if (!music.isPlaying())
+			music.play();
 	}  
       
 	public void render (float delta)

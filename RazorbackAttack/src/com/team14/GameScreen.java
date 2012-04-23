@@ -52,15 +52,13 @@ public class GameScreen implements Screen, InputProcessor
 	 */
 	private int screenWidth;
 	private int screenHeight;
-	private boolean gameOver = false;
 	private Game game;
 	private boolean initialized = false;
-	private GameInfo info;
+	public GameInfo info;
 	public LifeLostScreen lifeLostScreen;
 	public GameOverScreen gameOverScreen;
 	private Music music;
 	private Music jumpSound;
-	private Music dashSound;
 	
 	/**
 	 * The camera responsible for showing the score and lives above the acutal game
@@ -73,6 +71,7 @@ public class GameScreen implements Screen, InputProcessor
 		info = i;
 		game = g;
 		music = m;
+		
 		screenWidth = -1;	// Defer until create() when Gdx is initialized.
 		screenHeight = -1;
 		
@@ -260,7 +259,6 @@ public class GameScreen implements Screen, InputProcessor
 	        jumpSound = Gdx.audio.newMusic(Gdx.files.getFileHandle("assets/music/jump.wav", FileType.Internal));
 	        jumpSound.setLooping(false);
 	        jumpSound.setVolume(0.2f);	// jump.wav is pretty loud!
-	        razorback.setXVelocity(30.0f);
 			initialized = true;
 		}
 		
@@ -268,8 +266,9 @@ public class GameScreen implements Screen, InputProcessor
 		 * Starts playing music after initialization. If we're already initialized
 		 * and are coming back to this screen, will play music from pause point.
 		 */
-		if (!music.isPlaying())
-			music.play();
+		if (music != null)
+			if (!music.isPlaying())
+				music.play();
 	}
 
 	@Override public void hide() { }
@@ -296,7 +295,7 @@ public class GameScreen implements Screen, InputProcessor
 			case (Keys.X):
 				// For now, summons a new HelpScreen
 				// TODO: Create an actual PauseScreen class+image
-				game.setScreen(new HelpScreen(game, this));
+				game.setScreen(new HelpScreen(game, this, music));
 				break;
 			default:
 				down = false;

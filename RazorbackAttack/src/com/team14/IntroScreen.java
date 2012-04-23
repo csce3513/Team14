@@ -57,7 +57,7 @@ public class IntroScreen implements Screen
 		}
 		if (Gdx.input.isKeyPressed(Keys.H))
 		{
-			game.setScreen(new HelpScreen(game, this));
+			game.setScreen(new HelpScreen(game, this, music));
 			System.out.println("Going to HelpScreen...");
 		}
 		if (Gdx.input.isKeyPressed(Keys.ESCAPE))

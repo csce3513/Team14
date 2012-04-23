@@ -35,6 +35,8 @@ public class LifeLostScreen implements Screen
 		didShow = true;
 		gameScreen = null;
 		System.out.println("in lifelostscreen");
+		if (!music.isPlaying())
+			music.play();
 	}  
       
 	public void render (float delta)

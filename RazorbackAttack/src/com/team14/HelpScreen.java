@@ -16,21 +16,24 @@ public class HelpScreen implements Screen
 	private Texture helpTexture;
 	Game game;
 	Screen prevScreen; 
-	private Music music;
+	private Music music, oldMusic;
 	
-	public HelpScreen(Game g, Screen s)
+	public HelpScreen(Game g, Screen s, Music m)
 	{
 		game = g;
 		prevScreen = s;
+		oldMusic = m;
 	}
 
 	@Override
-	public void show() {
+	public void show()
+	{
 		batch = new SpriteBatch();  
 		helpTexture = new Texture(Gdx.files.internal("assets/HelpScreen.png"));
         music = Gdx.audio.newMusic(Gdx.files.getFileHandle("assets/music/pause.mp3", FileType.Internal));
         if (music != null)
         {
+        	oldMusic.pause();
         	music.setLooping(true);
         	music.play();
         }
