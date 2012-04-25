@@ -10,7 +10,7 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
-import com.badlogic.gdx.physics.box2d.PolygonShape;
+import com.badlogic.gdx.physics.box2d.CircleShape;
 import java.util.BitSet;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -49,9 +49,9 @@ public class Razorback
 	public static final int DIE = 4;
 	public static final int DEAD = 5;
 
-    public static final float normalXVelocity = 4.0f;
-    public static final float dashXVelocity = 13.0f;
-	public static final float PIXELS_PER_METER = 60.0f;
+    public static final float normalXVelocity = 13.0f;
+    public static final float dashXVelocity = 20.0f;
+	public static final float PIXELS_PER_METER = 46.6f;
 
     private Timer dashTimer;
 
@@ -114,15 +114,13 @@ public class Razorback
         bodyDef.type = BodyDef.BodyType.DynamicBody;
         
         /* Default start position */
-        bodyDef.position.set(1.0f, 7.0f);
+        bodyDef.position.set(0.0f, 0.0f);
 
         body = w.createBody(bodyDef);
 
-        /**
-         * Boxes are defined by their "half width" and "half height", hence the 2 multiplier.
-         */
-        PolygonShape shape = new PolygonShape();
-        shape.setAsBox(69 / (2 * PIXELS_PER_METER), 56 / (2 * PIXELS_PER_METER));
+        /* Setting shape to be a circle, which is close enough for our needs */
+        CircleShape shape = new CircleShape();
+        shape.setRadius(0.6f);
 
         /**
          * The character should not ever spin around on impact.
@@ -136,9 +134,9 @@ public class Razorback
 		 */
 		FixtureDef fixtureDef = new FixtureDef();
 		fixtureDef.shape = shape;
-		fixtureDef.density = 0.8f;
+		fixtureDef.density = 2.8f;
 		fixtureDef.friction = 0.0f; // always moving on ground
-
+		fixtureDef.restitution = 0.0f;
 		body.createFixture(fixtureDef);
 		shape.dispose();
 
@@ -159,15 +157,9 @@ public class Razorback
             state.set(RUNNING);
             state.set(JUMP, false);
             state.set(DOUBLEJUMP, false);
+            body.applyForceToCenter(0.0f, 0.0f);
+            body.applyForceToCenter(5.0f, 0.0f);
         }
-
-//        if (grounded())
-//        {
-//            state.set(RUNNING);
-//            System.out.println("Grounded");
-//        }
-//        else
-//        	System.out.println("Not Grounded");
 
     	stateTime += Gdx.graphics.getDeltaTime();
     	
@@ -179,13 +171,7 @@ public class Razorback
 
         	if (deathAnimation.isAnimationFinished(dieTime))
         	{
-        		System.out.println("I'm dead.");
         		state.set(DEAD);
-        	}
-        	else
-        	{
-        		System.out.println("dead now");
-        		
         	}
         }
         else if (state.get(DASH))
@@ -212,20 +198,6 @@ public class Razorback
     {
     	boolean didJump = false;
         
-    	/** 
-    	 * Check if we've just landed
-    	 * Our grounding mechanism is based on  
-    	 */
-//		THIS IS CURRENTLY IN move(), STILL NOT PERFECTED.
-//    	if ((grounded()) && (!state.get(DASH)))
-//        {
-//            state.set(RUNNING);
-//            state.set(JUMP, false);
-//            state.set(DOUBLEJUMP, false);
-//        }
-
-    	System.out.println("JUUUUUUUUUUMP!");
-    	System.out.println("Before: " + state.toString());
     	/* Handle the cases for each state */
     	if (state.get(DOUBLEJUMP))
     	{
@@ -241,7 +213,6 @@ public class Razorback
     	}
     	else if (state.get(DASH))
     	{
-    		System.out.println("!!! Jumping in dash mode");
     		if (!state.get(DOUBLEJUMP))
     		{
     			endDash();
@@ -257,7 +228,7 @@ public class Razorback
     		setYVelocity(7.0f);
         	didJump = true;
         }
-    	System.out.println("After: " + state.toString());
+
         return didJump;
     }
 
@@ -366,5 +337,11 @@ public class Razorback
 		{
 			endDash();
 		}
+	}
+	
+	@Override
+	public String toString()
+	{
+		return "RAZORBACK";
 	}
 }

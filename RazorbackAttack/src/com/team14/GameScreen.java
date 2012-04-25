@@ -18,8 +18,6 @@ public class GameScreen implements Screen, InputProcessor
 	/* The time the last frame was rendered, used for throttling framerate */
 	private long lastRender;
 
-	private TiledMapHelper tiledMapHelper;
-
 	/* The libgdx SpriteBatch -- used to optimize sprite drawing. */
 	private SpriteBatch worldBatch;
 
@@ -36,6 +34,7 @@ public class GameScreen implements Screen, InputProcessor
 
 	/* This is the player character. It will be created as a dynamic object. */
 	public Razorback razorback;
+	public Platforms platforms;
 
 	/**
 	 * Box2d works best with small values. If you use pixels directly you will
@@ -43,7 +42,7 @@ public class GameScreen implements Screen, InputProcessor
 	 * Common practice is to use a constant to convert pixels to and from
 	 * "meters".
 	 */
-	public static final float PIXELS_PER_METER = 60.0f;
+	public static final float PIXELS_PER_METER = 46.6f;
 
 	/**
 	 * The screen's width and height. This may not match that computed by
@@ -92,37 +91,19 @@ public class GameScreen implements Screen, InputProcessor
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 
 		// A nice(?), blue backdrop.
-		Gdx.gl.glClearColor(0, 0.5f, 0.9f, 0);
-
-		/** 
-		 * The camera is now controlled primarily by the position of the main
-		 * character, and secondarily by the map boundaries.
-		 */
-		tiledMapHelper.getCamera().position.x = PIXELS_PER_METER
-				* razorback.getXPosition() + 300;
+//		Gdx.gl.glClearColor(0, 0.5f, 0.9f, 0);
+		Gdx.gl.glClearColor(0.2421875f, 0.43359375f, 0.73046875f, 0);
+		// Offset the camera by 300 so Razorback is near left edge of screen
+		platforms.getCamera().position.x = PIXELS_PER_METER * razorback.getXPosition() + 300;
+		platforms.getCamera().position.y = PIXELS_PER_METER * razorback.getYPosition();
 		
-		// Ensure that the camera is only showing the map, nothing outside.
-		if (tiledMapHelper.getCamera().position.x < Gdx.graphics.getWidth() / 2) {
-			tiledMapHelper.getCamera().position.x = Gdx.graphics.getWidth() / 2;
-		}
-		if (tiledMapHelper.getCamera().position.x >= tiledMapHelper.getWidth()
-				- Gdx.graphics.getWidth() / 2) {
-			tiledMapHelper.getCamera().position.x = tiledMapHelper.getWidth()
-					- Gdx.graphics.getWidth() / 2;
-		}
-
-		if (tiledMapHelper.getCamera().position.y < Gdx.graphics.getHeight() / 2) {
-			tiledMapHelper.getCamera().position.y = Gdx.graphics.getHeight() / 2;
-		}
-		if (tiledMapHelper.getCamera().position.y >= tiledMapHelper.getHeight()
-				- Gdx.graphics.getHeight() / 2) {
-			tiledMapHelper.getCamera().position.y = tiledMapHelper.getHeight()
-					- Gdx.graphics.getHeight() / 2;
-		}
-
-		tiledMapHelper.getCamera().update();
-		tiledMapHelper.render();
-		worldBatch.setProjectionMatrix(tiledMapHelper.getCamera().combined);		
+		if (platforms.getCamera().position.x < Gdx.graphics.getWidth() / 2)
+		{
+			platforms.getCamera().position.x = Gdx.graphics.getWidth() / 2;
+		}		
+		platforms.getCamera().update();
+		platforms.render();
+		worldBatch.setProjectionMatrix(platforms.getCamera().combined);
 	}
 	
 	/**
@@ -145,6 +126,7 @@ public class GameScreen implements Screen, InputProcessor
 		 */ 
 		updateWorld();		// Update tilemap + camera position, HUD camera
 		worldBatch.begin();	// Prepare the world and razorback SpriteBatch for drawing.
+		platforms.update(worldBatch, razorback.getXPosition());
 		razorback.move(worldBatch);
 		worldBatch.end();	// "Flush" the sprites to screen.
 		
@@ -153,36 +135,27 @@ public class GameScreen implements Screen, InputProcessor
 		 */
 		updateHUD();
 		hudBatch.begin();
-		float fps = 1f / Gdx.graphics.getDeltaTime();
-		CharSequence str = "Lives: " + info.lives() +  "  Score: " + Integer.toString((int) getScore()) + ", FPS: " + Integer.toString((int) fps);
+		CharSequence str = "Lives: " + info.lives() +  "  Score: " + Integer.toString((int) getScore()) + ", FPS: " + Gdx.graphics.getFramesPerSecond();
 		font.setColor(1.0f, 1.0f, 1.0f, 1.0f);
 		font.draw(hudBatch, str, 50, 550);
 		hudBatch.end();
 		
 		/**
-		 * Check for collision
+		 * Check for collision or falling between platforms
 		 */
-		if (razorback.getXVelocity() <= 0.0f)
+		if ((razorback.getXVelocity() <= 0.0f) || ((razorback.getYPosition() * PIXELS_PER_METER) < -1000))
 		{
 			// Tell the GameInfo object that we're dead, and wish to record a new score
-			razorback.setState(4);
-			System.out.println("dying = " + razorback.isDying());
+			razorback.setState(Razorback.DIE);
 			
 			if (razorback.isDead())
 			{
-				System.out.println("dead = " + razorback.isDead());
-			info.loseLife((int) getScore());
+				info.loseLife((int) getScore());
 			
-			if (info.gameOver())
-			{
-				System.out.println("game over, man. game over.");
-				game.setScreen(gameOverScreen);
-			}
-			else
-			{
-				System.out.println("life lost, man. life lost.");
-				game.setScreen(lifeLostScreen);
-			}
+				if (info.gameOver())
+					game.setScreen(gameOverScreen);
+				else
+					game.setScreen(lifeLostScreen);
 			}
 		}
 		
@@ -224,11 +197,6 @@ public class GameScreen implements Screen, InputProcessor
 				screenHeight = Gdx.graphics.getHeight();
 			}
 
-			tiledMapHelper = new TiledMapHelper();
-			tiledMapHelper.setPackerDirectory("assets/tiles");
-			tiledMapHelper.loadMap("assets/tiles/testmap.tmx");
-			tiledMapHelper.prepareCamera(screenWidth, screenHeight);
-
 			worldBatch = new SpriteBatch();
 
 			/**
@@ -237,11 +205,13 @@ public class GameScreen implements Screen, InputProcessor
 			 */
 			world = new World(new Vector2(0.0f, -10.0f), true);
 
+			
+			/**
+			 * Work from background to foreground
+			 */
+			platforms = new Platforms(world);
 			razorback = new Razorback(world);
 			font = new BitmapFont();
-
-			tiledMapHelper.loadCollisions("assets/collisions.txt", world,
-					PIXELS_PER_METER);
 
 			lastRender = System.nanoTime();
 			Gdx.input.setInputProcessor(this);
