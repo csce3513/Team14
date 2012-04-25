@@ -30,7 +30,7 @@ public class TestDash
 		game.gameScreen.razorback.dash();
 
 		// Wait until we're in dash, get new velocity
-		try { Thread.sleep(250); } catch(InterruptedException e) { }
+		try { Thread.sleep(100); } catch(InterruptedException e) { }
 		float j = game.gameScreen.razorback.getXVelocity();
 		System.out.println("initial: " + i + ", dash: " + j);
 
@@ -38,7 +38,7 @@ public class TestDash
 		assertTrue(j > i);
 
 		// Wait another quarter second to complete dash
-		try { Thread.sleep(300); } catch(InterruptedException e) { }
+		try { Thread.sleep(1000); } catch(InterruptedException e) { }
 		j = game.gameScreen.razorback.getXVelocity();
 		System.out.println("initial: " + i + ", final: " + j);
 		

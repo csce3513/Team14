@@ -1,15 +1,13 @@
 /**
- * 
  * File: TestLifeLost.java
  * Purpose: Test losing a life
- * 
  */
-package com.team14;
+package com.team14.tests;
 
 import static org.junit.Assert.*;
 import org.junit.Test;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
-import com.team14.Game;
+
 
 public class TestLifeLost {
 
@@ -19,20 +17,25 @@ public class TestLifeLost {
 	 * a life to be lost.
 	 * 
 	 * At this point, the game continues when a life is lost, so all lives
-	 * should be lost and gameOver status assigned in about 6 seconds.
+	 * should be lost and gameOver status assigned in about 10 seconds.
+	 * 
+	 * THIS WILL NEED TO BE CHANGED ONCE WE HAVE RANDOM PLATFORMS.
 	 */
 	@Test
 	public void test() {
-		Game game = new Game(1,3);	
-        new LwjglApplication(game, "Game", 800, 600, false);
+		GameStart game = new GameStart();
+		new LwjglApplication(game, "Unit Test", 800, 600, false);
+
+		int beginningLives = game.gameScreen.info.lives();
 		try 
 		{
-			Thread.sleep(6000); // Waiting six seconds for collision...
+			Thread.sleep(10000); // Waiting six seconds for ultimate death...
 		} 
 		catch(InterruptedException e)
 		{
 			e.printStackTrace();
 		}
-		assertTrue(game.isGameOver());
+		System.out.println("start: " + beginningLives + ", end: " + game.gameScreen.info.lives());
+		assertTrue(game.gameScreen.info.lives() < beginningLives);
 	}
 }

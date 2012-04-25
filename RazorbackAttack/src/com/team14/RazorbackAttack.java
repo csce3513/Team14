@@ -5,7 +5,7 @@ import com.badlogic.gdx.Screen;
 
 public class RazorbackAttack extends Game
 {
-        boolean firstTimeCreate = true;
+        //boolean firstTimeCreate = true;
         public Screen introScreen;
         
         public RazorbackAttack()
