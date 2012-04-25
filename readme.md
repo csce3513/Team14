@@ -4,26 +4,23 @@ Team14 presents...
 
 Jump and attack your way to the big game, avoiding obstacles along the way!  
 
+## Download
+
+Click [here](http://csce.uark.edu/~nhyatt/csce3513/ra.jar)
+
 ## Installation Instructions
 
-Double click the jar, yo.  
+Double click the jar, yo. Or run from the command line with the command: java -jar ra.jar   
 
 ## Gameplay Instructions
 
-Up: Jump  
+Up Arrow: Jump  
 Left Control: Dash  
 
 ## Credits
 
-<<<<<<< HEAD
-- [LibGDX](http://code.google.com/p/libgdx/)
-- Razorback sprites from [Heroes of Might and Magic 2](http://www.spriters-resource.com/pc_computer/heroesofmightandmagic2/sheet/41775)
-- Inspiration from [Robot Unicorn Attack](http://games.adultswim.com/robot-unicorn-attack-twitchy-online-game.html)
-=======
 - Libraries and some sample code from the [LibGDX](http://code.google.com/p/libgdx/) Game Library
-- TiledMapHelper class from [dpk.net](http://dpk.net/2011/05/01/libgdx-box2d-tiled-maps-full-working-example-part-1/)
 - Splash image from [razorbackattack.com](http://www.razorbackattack.com/)
 - Pig sprites from the game Atelier Iris 2: The Azoth of Destiny, at [The Spriter's Resource](http://www.spriters-resource.com/community/showthread.php?tid=10934)
-- Music from the Scott Pilgrim video game
-- Music: "Phong" by RaveGuru, from [High Velocity SID Collection](http://www.hvsc.de/)
->>>>>>> dev
+- Pause music: from the Scott Pilgrim PS3 game
+- Level music: "Run", C64 SID version
