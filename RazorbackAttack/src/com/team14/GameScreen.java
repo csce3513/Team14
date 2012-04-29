@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.utils.PauseableThread;
 
 public class GameScreen implements Screen, InputProcessor
 {	
@@ -35,7 +36,10 @@ public class GameScreen implements Screen, InputProcessor
 	/* This is the player character. It will be created as a dynamic object. */
 	public Razorback razorback;
 	public Platforms platforms;
-
+	private RAContactListener contactListener;
+	
+	private PauseableThread platformGenerationThread;
+	
 	/**
 	 * Box2d works best with small values. If you use pixels directly you will
 	 * get weird results -- speeds and accelerations not feeling quite right.
@@ -88,11 +92,12 @@ public class GameScreen implements Screen, InputProcessor
 		 */
 		world.step(Gdx.app.getGraphics().getDeltaTime(), 3, 3);
 
+		// Clear the screen and show a nice blue backdrop.
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
-
-		// A nice(?), blue backdrop.
-//		Gdx.gl.glClearColor(0, 0.5f, 0.9f, 0);
 		Gdx.gl.glClearColor(0.2421875f, 0.43359375f, 0.73046875f, 0);
+
+		platforms.removeOldAndAddNew(razorback.getXPosition());
+		
 		// Offset the camera by 300 so Razorback is near left edge of screen
 		platforms.getCamera().position.x = PIXELS_PER_METER * razorback.getXPosition() + 300;
 		platforms.getCamera().position.y = PIXELS_PER_METER * razorback.getYPosition();
@@ -126,10 +131,11 @@ public class GameScreen implements Screen, InputProcessor
 		 */ 
 		updateWorld();		// Update tilemap + camera position, HUD camera
 		worldBatch.begin();	// Prepare the world and razorback SpriteBatch for drawing.
-		platforms.update(worldBatch, razorback.getXPosition());
+//		platforms.render();
+		platforms.draw(worldBatch);
 		razorback.move(worldBatch);
 		worldBatch.end();	// "Flush" the sprites to screen.
-		
+//		System.out.println("Razorback pos: " + razorback.getXPosition()*PIXELS_PER_METER+ ", " + razorback.getYPosition()*PIXELS_PER_METER);
 		/**
 		 * Now we update the score and lives, then display them.
 		 */
@@ -143,7 +149,7 @@ public class GameScreen implements Screen, InputProcessor
 		/**
 		 * Check for collision or falling between platforms
 		 */
-		if ((razorback.getXVelocity() <= 0.0f) || ((razorback.getYPosition() * PIXELS_PER_METER) < -1000))
+		if ((razorback.getXVelocity() <= 3.0f) || ((razorback.getYPosition() * PIXELS_PER_METER) < -1000))
 		{
 			// Tell the GameInfo object that we're dead, and wish to record a new score
 			razorback.setState(Razorback.DIE);
@@ -152,6 +158,12 @@ public class GameScreen implements Screen, InputProcessor
 			{
 				info.loseLife((int) getScore());
 			
+				world = null;
+				platforms = null;
+				razorback = null;
+				hudBatch = null;
+				worldBatch = null;
+				
 				if (info.gameOver())
 					game.setScreen(gameOverScreen);
 				else
@@ -209,8 +221,8 @@ public class GameScreen implements Screen, InputProcessor
 			/**
 			 * Work from background to foreground
 			 */
-			platforms = new Platforms(world);
 			razorback = new Razorback(world);
+			platforms = new Platforms(world);
 			font = new BitmapFont();
 
 			lastRender = System.nanoTime();
@@ -224,11 +236,18 @@ public class GameScreen implements Screen, InputProcessor
 			hudBatch = new SpriteBatch();
 			
 			/**
+			 * This is fun. This will tell us if two bodies collide.
+			 */
+			contactListener = new RAContactListener(world);
+			world.setContactListener(contactListener);
+			
+			/**
 			 * Initialize objects needed to play sounds
 			 */
 	        jumpSound = Gdx.audio.newMusic(Gdx.files.getFileHandle("assets/music/jump.wav", FileType.Internal));
 	        jumpSound.setLooping(false);
 	        jumpSound.setVolume(0.2f);	// jump.wav is pretty loud!
+	        
 			initialized = true;
 		}
 		
@@ -245,7 +264,7 @@ public class GameScreen implements Screen, InputProcessor
 	@Override public void pause() { }
 	@Override public void resume() { }
 	@Override public void dispose() { }
-
+	
 	/**
 	 * InputProcessor methods
 	 */

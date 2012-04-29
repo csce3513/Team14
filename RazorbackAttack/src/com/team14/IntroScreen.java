@@ -62,7 +62,7 @@ public class IntroScreen implements Screen
 		}
 		if (Gdx.input.isKeyPressed(Keys.ESCAPE))
 		{
-			
+			Gdx.app.exit();
 		}
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT); // This cryptic line clears the screen.  
 		batch.begin();  
