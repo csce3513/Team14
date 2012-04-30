@@ -37,7 +37,7 @@ public class GameInfo
 	public int getScore(int life)
 	{
 		// returns the score of a specific life
-		if ((life >= MAXLIVES) || (life < 0))
+		if ((life > MAXLIVES) || (life < 0))
 		{
 			System.out.println("Error: Invalid array index");
 			return -1;
