@@ -11,6 +11,7 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.physics.box2d.CircleShape;
+
 import java.util.BitSet;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -35,10 +36,13 @@ public class Razorback
     private Texture dashSheet;
     private Texture deathSheet;
     private Texture jumpSheet;
+    private Texture motorcycleTexture;
+    private TextureRegion motorcycleTR;
     private TextureRegion currentFrame;
 	private float scale = 1.0f;			// For enlarging the sprite upon dying!
 	private float lastXVelocity;
-
+	private GameInfo info;
+	
     private float stateTime;
     private float dieTime = 0.0f;
     
@@ -57,14 +61,18 @@ public class Razorback
 	public static final float PIXELS_PER_METER = 46.6f;
 
     private Timer dashTimer;
-
-	protected Razorback(World w)
+    
+	protected Razorback(World w, GameInfo gi)
     {
         super();
 
+        info = gi;
+        
         /**
          * Load up the texture sheets, create sprites from it.
          */
+        motorcycleTexture = new Texture(Gdx.files.internal("assets/motorcycle.png"));
+        motorcycleTR = new TextureRegion(motorcycleTexture, 0, 0, 144, 76);
         walkSheet = new Texture(Gdx.files.internal("assets/animation_sheet.png"));
         walkAnimation = new Animation(0.075f,
                 new TextureRegion(walkSheet, 0, 0, 69, 56),
@@ -174,15 +182,24 @@ public class Razorback
         }
         else if (state.get(DASH))
         {
-    		currentFrame = dashAnimation.getKeyFrame(stateTime, true);
+        	if (info.motorcycleMode())
+        		currentFrame = motorcycleTR;
+        	else
+        		currentFrame = dashAnimation.getKeyFrame(stateTime, true);
         }
         else if ((state.get(JUMP)) || (state.get(DOUBLEJUMP)))
         {
-            currentFrame = jumpAnimation.getKeyFrame(stateTime, true);
+        	if (info.motorcycleMode())
+        		currentFrame = motorcycleTR;
+        	else
+        		currentFrame = jumpAnimation.getKeyFrame(stateTime, true);
         }
         else if (state.get(RUNNING))
         {
-            currentFrame = walkAnimation.getKeyFrame(stateTime, true);        	
+        	if (info.motorcycleMode())
+        		currentFrame = motorcycleTR;
+        	else
+        		currentFrame = walkAnimation.getKeyFrame(stateTime, true);        	
         }
 
         /**

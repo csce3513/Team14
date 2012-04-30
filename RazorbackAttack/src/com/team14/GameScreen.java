@@ -61,6 +61,7 @@ public class GameScreen implements Screen, InputProcessor
 	private Music jumpSound;
 	private Music dashSound;
 	private Music deathSound;
+	private Music motorSound;
 	
 	/**
 	 * The camera responsible for showing the score and lives above the acutal game
@@ -220,7 +221,7 @@ public class GameScreen implements Screen, InputProcessor
 			/**
 			 * Work from background to foreground
 			 */
-			razorback = new Razorback(world);
+			razorback = new Razorback(world, info);
 			platforms = new Platforms(world);
 			font = new BitmapFont();
 
@@ -249,11 +250,15 @@ public class GameScreen implements Screen, InputProcessor
 
 	        dashSound = Gdx.audio.newMusic(Gdx.files.getFileHandle("assets/music/dash.mp3", FileType.Internal));
 	        dashSound.setLooping(false);
-	        dashSound.setVolume(0.9f);	// jump.wav is pretty loud!
+	        dashSound.setVolume(0.9f);
 
 	        deathSound = Gdx.audio.newMusic(Gdx.files.getFileHandle("assets/music/death.wav", FileType.Internal));
 	        deathSound.setLooping(false);
-	        deathSound.setVolume(0.9f);	// jump.wav is pretty loud!
+	        deathSound.setVolume(0.9f);
+
+	        motorSound = Gdx.audio.newMusic(Gdx.files.getFileHandle("assets/music/motor.wav", FileType.Internal));
+	        motorSound.setLooping(true);
+	        motorSound.setVolume(0.9f);
 
 			initialized = true;
 		}
@@ -263,13 +268,26 @@ public class GameScreen implements Screen, InputProcessor
 		 * and are coming back to this screen, will play music from pause point.
 		 */
 		if (music != null)
+		{
 			if (!music.isPlaying())
 				music.play();
+			if (info.motorcycleMode())
+				if (!motorSound.isPlaying())
+					motorSound.play();
+		}
 	}
 
-	@Override public void hide() { }
+	@Override public void hide() { 
+		if (info.motorcycleMode())
+			if (motorSound.isPlaying())
+				motorSound.pause();
+	}
 	@Override public void pause() { }
-	@Override public void resume() { }
+	@Override public void resume() { 
+		if (info.motorcycleMode())
+			if (!motorSound.isPlaying())
+				motorSound.play();
+	}
 	@Override public void dispose() { }
 	
 	/**

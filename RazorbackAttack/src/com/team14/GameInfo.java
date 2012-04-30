@@ -5,7 +5,9 @@
 
 package com.team14;
 
-public class GameInfo {
+public class GameInfo
+{
+	private boolean motorcycleMode = false;
 	private int livesRemaining;
 	private int[] scores = new int[3];
 	private int currentLife = 0;
@@ -76,5 +78,15 @@ public class GameInfo {
 	{
 		// checks to see if you are out of lives
 		return (livesRemaining < 0);
+	}
+	
+	public void setMotorcycleMode()
+	{
+		motorcycleMode = true;
+	}
+	
+	public boolean motorcycleMode()
+	{
+		return motorcycleMode;
 	}
 }
