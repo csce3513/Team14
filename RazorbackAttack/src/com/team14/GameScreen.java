@@ -195,6 +195,7 @@ public class GameScreen implements Screen, InputProcessor
 	@Override
 	public void show()
 	{
+		Gdx.input.setInputProcessor(this);
 		/**
 		 * Only initialize on first call
 		 */
@@ -275,11 +276,13 @@ public class GameScreen implements Screen, InputProcessor
 		switch (keycode)
 		{
 			case (Keys.DPAD_UP):
-				if (razorback.jump())
-					jumpSound.play();
+				if (razorback != null)
+					if (razorback.jump())
+						jumpSound.play();
 				break;
 			case (Keys.CONTROL_LEFT):
-				razorback.dash();
+					if (razorback != null)
+						razorback.dash();
 				break;
 			case (Keys.X):
 				// For now, summons a new HelpScreen

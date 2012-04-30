@@ -108,7 +108,7 @@ public class Razorback
                 new TextureRegion(deathSheet, 64, 256, 64, 64),
                 new TextureRegion(deathSheet, 128, 256, 64, 64),
                 new TextureRegion(deathSheet, 192, 256, 64, 64),
-                new TextureRegion(deathSheet, 256, 256, 64, 64));
+                new TextureRegion(deathSheet, 262, 256, 64, 64));
         
         stateTime = 0f;
         
@@ -198,8 +198,8 @@ public class Razorback
         /**
          * Let's have some fun with this guy.
          */
-        if (state.get(DIE))
-        {
+       if (state.get(DIE))
+       {
         	scale += 0.06f;
         	spriteBatch.draw(currentFrame, PIXELS_PER_METER * body.getPosition().x	- 69 / 2, PIXELS_PER_METER * body.getPosition().y - 56 / 2, (int) 0, (int) 0, (int) 69, (int)56, scale, scale, 0.0f);
         }

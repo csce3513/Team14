@@ -1,7 +1,7 @@
 package com.team14;
 
 import com.badlogic.gdx.Game;
-import com.badlogic.gdx.Gdx;  
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
@@ -67,5 +67,6 @@ public class LifeLostScreen implements Screen
 	public void hide()
 	{ 
 		didShow = false;
-	}  
-}  
+	}
+
+}
