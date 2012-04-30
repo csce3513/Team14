@@ -241,7 +241,7 @@ public class Razorback
     		{
     			endDash();
     			state.set(DOUBLEJUMP);
-    			setYVelocity(9.0f);
+    			setYVelocity(14.0f);
     			didJump = true;
     		}
     	}
@@ -345,7 +345,16 @@ public class Razorback
     {
     	return body.getPosition().y;
     }
-  
+
+    /**
+     * Methods to get and set X and Y position
+     */
+    public void setXPosition(float x)
+    {
+//    	return body.getPosition().x;
+    	body.setTransform(x, 0.0f, 0.0f);
+    }
+
 	public BitSet getState()
 	{
 		return state;

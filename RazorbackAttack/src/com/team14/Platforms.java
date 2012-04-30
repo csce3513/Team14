@@ -22,8 +22,7 @@ public class Platforms
     private World world;
     private OrthographicCamera camera;
 	Box2DDebugRenderer renderer;
-	LinkedList<Platform> platformList;
-	public static final float PIXELS_PER_METER = 46.6f;
+	public LinkedList<Platform> platformList;
 	
 	//
 	FixtureDef fixtureDef[][];
@@ -55,7 +54,7 @@ public class Platforms
 		platformList.add(getNewPlatform(7, 2500, -200));
 	}
 
-	private Platform getNewPlatform(int num, float xpos, float ypos)
+	public Platform getNewPlatform(int num, float xpos, float ypos)
 	{
 		Platform p = new Platform(world, num, fixtureDef[num-1], dimensions[num-1], obstacles[num-1], xpos, ypos);
 		return p;
@@ -66,33 +65,43 @@ public class Platforms
 	 *                       the screen. When this happens, this platform is deleted and a
 	 *                       new platform is added to the tail of the linked list. 
 	 * @param currentPos: The current X position of the Razorback's Box2D body. This number
-	 * 					  needs to be multiplied by PIXELS_PER_METER to get the screen position
-	 *                    of the Razorback.
+	 * 					  is passed on to getCurrentPlatform().
 	 */
 	public void removeOldAndAddNew(float currentPos)
 	{
+		/**
+		 * Remove any platforms before the current platform, add a new random platform to tail.
+		 */
+		for (int i = 0; i < getCurrentPlatform(currentPos); i++)
+		{
+			platformList.set(i, null);
+			platformList.remove(i);
+			int num = Utils.getRandomNum(Platform.MAX_PLATFORMS);
+			platformList.add(getNewPlatform(num, (platformList.getLast().getEnd() + 300), -200));
+		}
+	}
+
+	/**
+	 * getCurrentPlatform(): Which platform in the list is the Razorback currently on/over?
+	 * @param currentPos: The current X position of the Razorback's Box2D body. This number
+	 * 					  needs to be multiplied by PIXELS_PER_METER to get the screen position
+	 *                    of the Razorback.
+	 * @return The element position of the platformList over which the Razorback resides.
+	 * 		   Returns -1 if not currently over a platform.
+	 */
+	public int getCurrentPlatform(float currentPos)
+	{
 		int currPlatform = -1;
 
-		
 		/**
 		 * Walk the list until we find the platform the Razorback currently occupies.
 		 */
 		for (Platform p: platformList)
 		{
-			if ((p.getStart() <= currentPos * PIXELS_PER_METER) && (p.getEnd() >= currentPos * PIXELS_PER_METER))
+			if ((p.getStart() <= currentPos * Utils.PIXELS_PER_METER) && (p.getEnd() >= currentPos * Utils.PIXELS_PER_METER))
 				currPlatform = platformList.indexOf(p);
 		}
-
-		/**
-		 * Remove any platforms before the current platform, add a new random platform to tail.
-		 */
-		for (int i = 0; i < currPlatform; i++)
-		{
-			platformList.remove(i);
-			int num = Platform.getRandomNum(Platform.MAX_PLATFORMS);
-			platformList.add(getNewPlatform(num, (platformList.getLast().getEnd() + 300), -200));
-//			platformList.add(getNewPlatform(0, (platformList.getLast().getEnd() + 300), -200));
-		}
+		return currPlatform;
 	}
 	
 	public void render()
@@ -107,7 +116,13 @@ public class Platforms
 		for (Platform p: platformList)
 		{
 			p.render(spriteBatch);
-//			renderer.render(world, camera.combined);
+
+			/**
+			 * For debugging, uncomment this line. It will display a miniature outline
+			 * of the world, switching to full size when you approach an obstacle.
+			 * 
+			 * I take no credit for this, it just works that way.
+			 */
 //			renderer.render(world, camera.projection);
 		}
 	}
@@ -159,7 +174,7 @@ public class Platforms
 					String cols[] = lines[filePos + j].split(" ");
 					String xcoord = cols[0];
 					String ycoord = cols[1];
-					vertices[j] = new Vector2(Integer.parseInt(xcoord) / PIXELS_PER_METER, (Integer.parseInt(ycoord) * -1 + Integer.parseInt(dims[1])) / PIXELS_PER_METER);
+					vertices[j] = new Vector2(Integer.parseInt(xcoord) / Utils.PIXELS_PER_METER, (Integer.parseInt(ycoord) * -1 + Integer.parseInt(dims[1])) / Utils.PIXELS_PER_METER);
 				}
 				filePos += numVertices;
 				ChainShape chain = new ChainShape();

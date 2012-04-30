@@ -25,7 +25,6 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
-import java.util.Random;
 
 public class Platform
 {
@@ -37,68 +36,52 @@ public class Platform
     
     private static int xSize, ySize;		// Dimensions of the platform texture region
 
-	public static final float PIXELS_PER_METER = 46.6f; // Conversion factor for body<->pixels
 	public static final int MAX_PLATFORMS = 8; // Total platforms, must be updated when new platform is added
 
 	/**
-	 * 
-	 * @param w - World in which to place platforms, passed from Platforms instance
-	 * @param num - Number of platform resource to load, 0 for randomized selection
-	 * @param xpos - Pixel-based x-coordinate to place upper left corner of platform
-	 * @param ypos - Same, for y-coordinate
+	 * Platform(): Constructs a new, single platform using the data provided. The platform
+	 * 			   consists of a texture and physical body, just like everything else in the game.
+	 * @param w - The world into which we'll place the platform
+	 * @param num - Platform number, used for loading resources
+	 * @param fixtureDef - The pre-cached FixtureDef from the Platforms instance
+	 * @param dimensions - Dimensions of this platform
+	 * @param obstaclePos - Position of obstacle on this platform, (0, 0) if none
+	 * @param xPos - X position at which to place platform 
+	 * @param yPos - Y position at which to place platform
 	 */
-	public Platform(World w, int num, FixtureDef[] fixtureDef, Vector2 dimensions, Vector2 obstaclePos, float xpos, float ypos)
+	public Platform(World w, int num, FixtureDef[] fixtureDef, Vector2 dimensions, Vector2 obstaclePos, float xPos, float yPos)
 	{
 		world = w;
 		
 		texture = new Texture(Gdx.files.internal("assets/platforms/platform" + num + ".png"));
+			
 		xSize = (int) dimensions.x;
 		ySize = (int) dimensions.y;
 		tr = new TextureRegion(texture, 0, 0, xSize, ySize);
 
 		BodyDef bodyDef = new BodyDef();
 		bodyDef.type = BodyDef.BodyType.StaticBody;
-		float y = (ypos - ySize + (getRandomNum(100) * getRandomSign()));
-		bodyDef.position.set(xpos / PIXELS_PER_METER, y / PIXELS_PER_METER);
+		float yRandomized = Utils.getRandomNum(75) * Utils.getRandomSign();
+		bodyDef.position.set(xPos / Utils.PIXELS_PER_METER, (yPos - ySize + yRandomized) / Utils.PIXELS_PER_METER);
 
 		body = world.createBody(bodyDef);
 		
 		for (int i = 0; i < fixtureDef.length; i++)
 			if (fixtureDef[i] != null)
 				body.createFixture(fixtureDef[i]);
-		System.out.println("Obstacle position: " + obstaclePos.x + ", " + obstaclePos.y);
-		System.out.println("Platform position: " + xpos + ", " + y);
+		System.out.println("Obstacle position: " + (obstaclePos.x + xPos) + ", " + obstaclePos.y);
+		System.out.println("Platform position: " + xPos + ", " + yRandomized);
 		System.out.println("=============================================================");
 		if (obstaclePos.x != 0.0)
-			obstacle = new Obstacle(world, (obstaclePos.x + xpos), y + obstaclePos.y + ySize);	
+			obstacle = new Obstacle(world, (obstaclePos.x + xPos), yPos + yRandomized - obstaclePos.y);
 
 		body.setUserData(this);
 	}
 	
-	/**
-	 * getRandomNum(): Returns a general purpose random number.
-	 */
-	public static int getRandomNum(int MAX)
-	{
-	    Random random = new Random();
-	    return random.nextInt(MAX) + 1;
-	}
-	
-	/**
-	 * getRandomSign(): Returns a random positive or negative 1. Used for random platform placement.
-	 */
-	private int getRandomSign()
-	{
-		Random random = new Random();
-		int i = random.nextInt(2);
-		if (i == 0)
-			i = -1;
-		return i;
-	}
-		
+
 	public void render(SpriteBatch spriteBatch)
 	{
-		spriteBatch.draw(tr, PIXELS_PER_METER * body.getPosition().x, PIXELS_PER_METER * body.getPosition().y);
+		spriteBatch.draw(tr, Utils.PIXELS_PER_METER * body.getPosition().x, Utils.PIXELS_PER_METER * body.getPosition().y);
 		if (obstacle != null)
 			obstacle.draw(spriteBatch);
 	}
@@ -106,13 +89,13 @@ public class Platform
 	/* Return x coordinate of left end of platform */
 	public float getStart()
 	{
-		return body.getPosition().x * PIXELS_PER_METER;
+		return body.getPosition().x * Utils.PIXELS_PER_METER;
 	}
 	
 	/* Return x coordinate of right end of platform */
 	public float getEnd()
 	{
-		return body.getPosition().x * PIXELS_PER_METER + xSize;
+		return body.getPosition().x * Utils.PIXELS_PER_METER + xSize;
 	}
 	
 	@Override

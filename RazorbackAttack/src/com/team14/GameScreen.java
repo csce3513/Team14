@@ -38,30 +38,25 @@ public class GameScreen implements Screen, InputProcessor
 	private RAContactListener contactListener;
 	
 	/**
-	 * Box2d works best with small values. If you use pixels directly you will
-	 * get weird results -- speeds and accelerations not feeling quite right.
-	 * Common practice is to use a constant to convert pixels to and from
-	 * "meters".
-	 */
-	public static final float PIXELS_PER_METER = 46.6f;
-
-	/**
 	 * The screen's width and height. This may not match that computed by
 	 * libgdx's gdx.graphics.getWidth() / getHeight() on devices that make use
 	 * of on-screen menu buttons.
 	 */
 	private int screenWidth;
 	private int screenHeight;
+	
 	private Game game;
-	private boolean initialized = false;
 	public GameInfo info;
+	private boolean initialized = false;
 	public LifeLostScreen lifeLostScreen;
 	public GameOverScreen gameOverScreen;
+	private int score = 0;
 	private Music music;
 	private Music jumpSound;
 	private Music dashSound;
 	private Music deathSound;
 	private Music motorSound;
+	private float lastXpos = 0.0f; // for score tracking
 	
 	/**
 	 * The camera responsible for showing the score and lives above the acutal game
@@ -84,6 +79,10 @@ public class GameScreen implements Screen, InputProcessor
 	
 	public void updateWorld()
 	{
+		score += (razorback.getXPosition() - lastXpos) * Utils.PIXELS_PER_METER;
+		lastXpos = razorback.getXPosition();
+		
+
 		/**
 		 * Have box2d update the positions and velocities (and etc) of all
 		 * tracked objects. The second and third argument specify the number of
@@ -99,8 +98,8 @@ public class GameScreen implements Screen, InputProcessor
 		platforms.removeOldAndAddNew(razorback.getXPosition());
 		
 		// Offset the camera by 300 so Razorback is near left edge of screen
-		platforms.getCamera().position.x = PIXELS_PER_METER * razorback.getXPosition() + 150;
-		platforms.getCamera().position.y = PIXELS_PER_METER * razorback.getYPosition();
+		platforms.getCamera().position.x = Utils.PIXELS_PER_METER * razorback.getXPosition() + 150;
+		platforms.getCamera().position.y = Utils.PIXELS_PER_METER * razorback.getYPosition();
 		
 		if (platforms.getCamera().position.x < Gdx.graphics.getWidth() / 2)
 		{
@@ -148,7 +147,7 @@ public class GameScreen implements Screen, InputProcessor
 		/**
 		 * Check for collision or falling between platforms
 		 */
-		if ((razorback.getXVelocity() <= 3.0f) || ((razorback.getYPosition() * PIXELS_PER_METER) < -1000))
+		if ((razorback.getXVelocity() <= 3.0f) || ((razorback.getYPosition() * Utils.PIXELS_PER_METER) < -1000))
 		{
 			// Tell the GameInfo object that we're dead, and wish to record a new score
 			razorback.setState(Razorback.DIE);
@@ -156,7 +155,7 @@ public class GameScreen implements Screen, InputProcessor
 				deathSound.play();
 			if (razorback.isDead())
 			{
-				info.loseLife((int) getScore());
+				info.loseLife(getScore());
 			
 				world = null;
 				platforms = null;
@@ -238,7 +237,7 @@ public class GameScreen implements Screen, InputProcessor
 			/**
 			 * This is fun. This will tell us if two bodies collide.
 			 */
-			contactListener = new RAContactListener(world);
+			contactListener = new RAContactListener(world, this);
 			world.setContactListener(contactListener);
 			
 			/**
@@ -368,8 +367,13 @@ public class GameScreen implements Screen, InputProcessor
 		return false;
 	}
 
-	public float getScore()
+	public void addPoints(int points)
 	{
-		return PIXELS_PER_METER * razorback.getXPosition();
+		score += points;
+	}
+	
+	public int getScore()
+	{
+		return score;
 	}
 }

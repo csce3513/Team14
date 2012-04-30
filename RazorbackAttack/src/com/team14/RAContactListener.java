@@ -10,12 +10,15 @@ import com.badlogic.gdx.physics.box2d.World;
 public class RAContactListener implements ContactListener
 {
 	World world;
+	GameScreen screen;
 	
-	public RAContactListener(World w)
+	public RAContactListener(World w, GameScreen s)
 	{
 		super();
 		world = w;
+		screen = s;
 	}
+	
 	@Override
 	public void beginContact(Contact contact)
 	{
@@ -63,11 +66,17 @@ public class RAContactListener implements ContactListener
 		else if (colliderBody.getUserData().toString() == "OBSTACLE")
 		{
 			obstacle = (Obstacle) colliderBody.getUserData();
-			System.out.println("Collided with obstacle, brah");
-			if (!razorback.isDashing())
-				razorback.setState(Razorback.DIE);
-			else
-				obstacle.setDestroyed();
+			if (!obstacle.isDestroyed())
+			{
+				System.out.println("Collided with obstacle, brah");
+				if (!razorback.isDashing())
+					razorback.setState(Razorback.DIE);
+				else
+				{
+					obstacle.setDestroyed();
+					screen.addPoints(5000);
+				}
+			}
 		}
 	}
 

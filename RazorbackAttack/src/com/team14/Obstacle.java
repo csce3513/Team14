@@ -19,7 +19,6 @@ import com.badlogic.gdx.physics.box2d.World;
 public class Obstacle
 {
 	private static final int MAX_OBSTACLES = 3;
-	private static final float PIXELS_PER_METER = 46.6f;
     private Texture destroySheet;
 	private Animation destroyAnimation;
 	private boolean isDestroyed = false;
@@ -68,16 +67,16 @@ public class Obstacle
 	        
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.StaticBody;
-        bodyDef.position.set(xpos / PIXELS_PER_METER, ypos / PIXELS_PER_METER);
+        bodyDef.position.set(xpos / Utils.PIXELS_PER_METER, ypos / Utils.PIXELS_PER_METER);
         bodyDef.active = true;
 		body = world.createBody(bodyDef);
 		
 		System.out.println("Obstacle pos: " + xpos + ", " + ypos);
 		Vector2[] vertices = new Vector2[4];
 		vertices[0] = new Vector2(0, 0);
-		vertices[1] = new Vector2(73 / PIXELS_PER_METER, 0);
-		vertices[2] = new Vector2(73 / PIXELS_PER_METER, 73 / PIXELS_PER_METER);
-		vertices[3] = new Vector2(0, 73 / PIXELS_PER_METER);
+		vertices[1] = new Vector2(73 / Utils.PIXELS_PER_METER, 0);
+		vertices[2] = new Vector2(73 / Utils.PIXELS_PER_METER, 73 / Utils.PIXELS_PER_METER);
+		vertices[3] = new Vector2(0, 73 / Utils.PIXELS_PER_METER);
 
 		ChainShape chain = new ChainShape();
 		chain.createLoop(vertices);
@@ -100,13 +99,13 @@ public class Obstacle
 	{
 		if (!isDestroyed)
 		{
-			spriteBatch.draw(textureRegion, PIXELS_PER_METER * body.getPosition().x /* / 2 */, PIXELS_PER_METER * body.getPosition().y/* / 2 */); 
+			spriteBatch.draw(textureRegion, Utils.PIXELS_PER_METER * body.getPosition().x /* / 2 */, Utils.PIXELS_PER_METER * body.getPosition().y/* / 2 */); 
 		}
 		else
 		{
         	currentFrame = destroyAnimation.getKeyFrame(dieTime, false);
         	dieTime += Gdx.graphics.getDeltaTime();
-			spriteBatch.draw(currentFrame, PIXELS_PER_METER * body.getPosition().x /* / 2 */, PIXELS_PER_METER * body.getPosition().y/* / 2 */);
+			spriteBatch.draw(currentFrame, Utils.PIXELS_PER_METER * body.getPosition().x /* / 2 */, Utils.PIXELS_PER_METER * body.getPosition().y/* / 2 */);
 		}
 	}
 	
@@ -120,10 +119,14 @@ public class Obstacle
 	{
 		if (!isDestroyed)
 		{
-			System.out.println("DIE FUCKER");
 			isDestroyed = true;
 			explosionSound.play();
 		}
+	}
+	
+	public boolean isDestroyed()
+	{
+		return isDestroyed;
 	}
 	
 	@Override
