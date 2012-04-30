@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;  
 import com.badlogic.gdx.graphics.Texture;  
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;  
@@ -21,6 +22,8 @@ public class LifeLostScreen implements Screen
 	Game game;
 	GameInfo info;
 	Music music;
+	float scale = 0.350f;
+	int multiplier = 1;
 	private boolean didShow = false; // For testing.
 	BitmapFont font;
 	public static final String FONT_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789][_!$%#@|\\/?-+=()*&.;,{}\"´`'<>";
@@ -50,15 +53,38 @@ public class LifeLostScreen implements Screen
       
 	public void render (float delta)
 	{
+		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT); // This cryptic line clears the screen.  
 
 		int R = (int) (Math.random( )*256);
-		int G = (int)(Math.random( )*256);
-		int B= (int)(Math.random( )*256);
-		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT); // This cryptic line clears the screen.  
+		int G = (int) (Math.random( )*256);
+		int B = (int) (Math.random( )*256);
+
+		if ((scale >= .400) || (scale <= .300))
+		{
+			multiplier = -1 * multiplier;
+		}
+		scale += multiplier * .001;
+		System.out.println(scale);
 		batch.begin();  
 		batch.draw(splashTexture, 0, 0);  
-		displayScore();
-		font.setColor(R, G, B, 1);
+		for (int life = 0; life < info.life(); life++)
+		{
+			CharSequence str= "" + info.getScore(life);
+			if (info.getScore(life) != -1)
+			{
+				if (life == info.life() - 1)
+				{
+					font.setColor(R, G, B, 1);
+					font.setScale(scale);
+				}
+				else
+				{
+					font.setColor(Color.WHITE);
+					font.setScale(0.3f);
+				}
+				font.draw(batch, str, 150, 550-(life*40));
+			}
+		}
 		batch.end();
 		if (Gdx.input.isKeyPressed(Keys.ESCAPE))
 		{
@@ -83,15 +109,4 @@ public class LifeLostScreen implements Screen
 	{ 
 		didShow = false;
 	}
-	private void displayScore()
-	{
-		for (int life =0 ;life<=info.MAXLIVES ; life++){
-			CharSequence str= "DEATH " + (life+1)  +" "+ info.getScore(life);
-			if (info.getScore(life)>0)
-			{
-				font.draw(batch, str, 150, 550-(life*40));
-			}
-		}
-	}
-
 }

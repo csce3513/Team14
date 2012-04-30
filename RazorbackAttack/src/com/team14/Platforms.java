@@ -50,8 +50,8 @@ public class Platforms
 		 */
 		platformList = new LinkedList<Platform>();
 		platformList.add(getNewPlatform(1, 0, -200));
-		platformList.add(getNewPlatform(2, 1600, -100));
-		platformList.add(getNewPlatform(7, 2500, -200));
+		platformList.add(getNewPlatform(2, 1700, -100));
+		platformList.add(getNewPlatform(7, 2800, -200));
 	}
 
 	public Platform getNewPlatform(int num, float xpos, float ypos)

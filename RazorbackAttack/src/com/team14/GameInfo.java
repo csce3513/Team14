@@ -19,7 +19,7 @@ public class GameInfo
 		livesRemaining = MAXLIVES;// - 1;
 		// array of integers to keep track of score for each life
 		for (int i = 0; i < MAXLIVES; i++)
-			scores[i] = 0;
+			scores[i] = -1;
 	}
 	
 	public void setScore(int score)
