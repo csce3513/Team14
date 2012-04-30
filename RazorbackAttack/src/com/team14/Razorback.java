@@ -71,8 +71,8 @@ public class Razorback
         /**
          * Load up the texture sheets, create sprites from it.
          */
-        motorcycleTexture = new Texture(Gdx.files.internal("assets/motorcycle.png"));
-        motorcycleTR = new TextureRegion(motorcycleTexture, 0, 0, 144, 76);
+        motorcycleTexture = new Texture(Gdx.files.internal("assets/motorcycle2.png"));
+        motorcycleTR = new TextureRegion(motorcycleTexture, 0, 0, 160, 76);
         walkSheet = new Texture(Gdx.files.internal("assets/animation_sheet.png"));
         walkAnimation = new Animation(0.075f,
                 new TextureRegion(walkSheet, 0, 0, 69, 56),
