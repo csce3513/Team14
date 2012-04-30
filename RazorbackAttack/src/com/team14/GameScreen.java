@@ -12,7 +12,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
-import com.badlogic.gdx.utils.PauseableThread;
 
 public class GameScreen implements Screen, InputProcessor
 {	
@@ -38,8 +37,6 @@ public class GameScreen implements Screen, InputProcessor
 	public Platforms platforms;
 	private RAContactListener contactListener;
 	
-	private PauseableThread platformGenerationThread;
-	
 	/**
 	 * Box2d works best with small values. If you use pixels directly you will
 	 * get weird results -- speeds and accelerations not feeling quite right.
@@ -62,6 +59,8 @@ public class GameScreen implements Screen, InputProcessor
 	public GameOverScreen gameOverScreen;
 	private Music music;
 	private Music jumpSound;
+	private Music dashSound;
+	private Music deathSound;
 	
 	/**
 	 * The camera responsible for showing the score and lives above the acutal game
@@ -99,7 +98,7 @@ public class GameScreen implements Screen, InputProcessor
 		platforms.removeOldAndAddNew(razorback.getXPosition());
 		
 		// Offset the camera by 300 so Razorback is near left edge of screen
-		platforms.getCamera().position.x = PIXELS_PER_METER * razorback.getXPosition() + 300;
+		platforms.getCamera().position.x = PIXELS_PER_METER * razorback.getXPosition() + 150;
 		platforms.getCamera().position.y = PIXELS_PER_METER * razorback.getYPosition();
 		
 		if (platforms.getCamera().position.x < Gdx.graphics.getWidth() / 2)
@@ -127,15 +126,14 @@ public class GameScreen implements Screen, InputProcessor
 		long now = System.nanoTime();
 		
 		/**
-		 * First we update the tilemap and razorback. Then we display them. 
+		 * First we update the world and razorback. Then we display them. 
 		 */ 
-		updateWorld();		// Update tilemap + camera position, HUD camera
+		updateWorld();		// Update world + camera position, HUD camera
 		worldBatch.begin();	// Prepare the world and razorback SpriteBatch for drawing.
-//		platforms.render();
 		platforms.draw(worldBatch);
 		razorback.move(worldBatch);
 		worldBatch.end();	// "Flush" the sprites to screen.
-//		System.out.println("Razorback pos: " + razorback.getXPosition()*PIXELS_PER_METER+ ", " + razorback.getYPosition()*PIXELS_PER_METER);
+
 		/**
 		 * Now we update the score and lives, then display them.
 		 */
@@ -153,7 +151,8 @@ public class GameScreen implements Screen, InputProcessor
 		{
 			// Tell the GameInfo object that we're dead, and wish to record a new score
 			razorback.setState(Razorback.DIE);
-			
+			if (!deathSound.isPlaying())
+				deathSound.play();
 			if (razorback.isDead())
 			{
 				info.loseLife((int) getScore());
@@ -195,7 +194,6 @@ public class GameScreen implements Screen, InputProcessor
 	@Override
 	public void show()
 	{
-		Gdx.input.setInputProcessor(this);
 		/**
 		 * Only initialize on first call
 		 */
@@ -248,7 +246,15 @@ public class GameScreen implements Screen, InputProcessor
 	        jumpSound = Gdx.audio.newMusic(Gdx.files.getFileHandle("assets/music/jump.wav", FileType.Internal));
 	        jumpSound.setLooping(false);
 	        jumpSound.setVolume(0.2f);	// jump.wav is pretty loud!
-	        
+
+	        dashSound = Gdx.audio.newMusic(Gdx.files.getFileHandle("assets/music/dash.mp3", FileType.Internal));
+	        dashSound.setLooping(false);
+	        dashSound.setVolume(0.9f);	// jump.wav is pretty loud!
+
+	        deathSound = Gdx.audio.newMusic(Gdx.files.getFileHandle("assets/music/death.wav", FileType.Internal));
+	        deathSound.setLooping(false);
+	        deathSound.setVolume(0.9f);	// jump.wav is pretty loud!
+
 			initialized = true;
 		}
 		
@@ -276,13 +282,13 @@ public class GameScreen implements Screen, InputProcessor
 		switch (keycode)
 		{
 			case (Keys.DPAD_UP):
-				if (razorback != null)
-					if (razorback.jump())
-						jumpSound.play();
+				if (razorback.jump())
+					jumpSound.play();
 				break;
 			case (Keys.CONTROL_LEFT):
-					if (razorback != null)
-						razorback.dash();
+				if (!razorback.isDashing())
+					dashSound.play();
+				razorback.dash();
 				break;
 			case (Keys.X):
 				// For now, summons a new HelpScreen

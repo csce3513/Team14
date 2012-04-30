@@ -52,8 +52,8 @@ public class Razorback
 	public static final int DIE = 4;
 	public static final int DEAD = 5;
 
-    public static final float normalXVelocity = 13.0f;
-    public static final float dashXVelocity = 20.0f;
+    public static final float normalXVelocity = 8.0f;
+    public static final float dashXVelocity = 12.0f;
 	public static final float PIXELS_PER_METER = 46.6f;
 
     private Timer dashTimer;
@@ -66,24 +66,24 @@ public class Razorback
          * Load up the texture sheets, create sprites from it.
          */
         walkSheet = new Texture(Gdx.files.internal("assets/animation_sheet.png"));
-        walkAnimation = new Animation(0.075f, //25f,
+        walkAnimation = new Animation(0.075f,
                 new TextureRegion(walkSheet, 0, 0, 69, 56),
                 new TextureRegion(walkSheet, 70, 0, 69, 56),
                 new TextureRegion(walkSheet, 139, 0, 69, 56),
                 new TextureRegion(walkSheet, 208, 0, 69, 56),
                 new TextureRegion(walkSheet, 277, 0, 65, 56));
         jumpSheet = new Texture(Gdx.files.internal("assets/jump_sheet.png"));
-        jumpAnimation = new Animation(.85f, //25f,
+        jumpAnimation = new Animation(.85f,
                 new TextureRegion(jumpSheet, 0, 0, 95, 55),
                 new TextureRegion(jumpSheet, 95, 0, 95, 55));
         dashSheet = new Texture(Gdx.files.internal("assets/dash_sheet.png"));
-        dashAnimation = new Animation(0.150f, //25f,
+        dashAnimation = new Animation(0.150f,
                 new TextureRegion(dashSheet, 0, 0, 60, 70),
                 new TextureRegion(dashSheet, 60, 0, 68, 70),
                 new TextureRegion(dashSheet, 128, 0, 68, 70),
                 new TextureRegion(dashSheet, 196, 0, 70, 72));
         deathSheet = new Texture(Gdx.files.internal("assets/death_sheet.png"));
-        deathAnimation = new Animation(0.09f, //25f,
+        deathAnimation = new Animation(0.09f,
                 new TextureRegion(deathSheet, 0, 0, 64, 64),
                 new TextureRegion(deathSheet, 64, 0, 64, 64),
                 new TextureRegion(deathSheet, 128, 0, 64, 64),
@@ -108,7 +108,7 @@ public class Razorback
                 new TextureRegion(deathSheet, 64, 256, 64, 64),
                 new TextureRegion(deathSheet, 128, 256, 64, 64),
                 new TextureRegion(deathSheet, 192, 256, 64, 64),
-                new TextureRegion(deathSheet, 262, 256, 64, 64));
+                new TextureRegion(deathSheet, 262, 256, 64, 64));        
         
         stateTime = 0f;
         
@@ -156,16 +156,6 @@ public class Razorback
 
 	public void move(SpriteBatch spriteBatch)
 	{
-
-//		if ((grounded()) && (!state.get(DASH)))
-//        {
-//            state.set(RUNNING);
-//            state.set(JUMP, false);
-//            state.set(DOUBLEJUMP, false);
-//            body.applyForceToCenter(0.0f, 0.0f);
-//            body.applyForceToCenter(5.0f, 0.0f);
-//        }
-
     	stateTime += Gdx.graphics.getDeltaTime();
     	
     	lastXVelocity = this.getXVelocity();
@@ -198,8 +188,8 @@ public class Razorback
         /**
          * Let's have some fun with this guy.
          */
-       if (state.get(DIE))
-       {
+        if (state.get(DIE))
+        {
         	scale += 0.06f;
         	spriteBatch.draw(currentFrame, PIXELS_PER_METER * body.getPosition().x	- 69 / 2, PIXELS_PER_METER * body.getPosition().y - 56 / 2, (int) 0, (int) 0, (int) 69, (int)56, scale, scale, 0.0f);
         }

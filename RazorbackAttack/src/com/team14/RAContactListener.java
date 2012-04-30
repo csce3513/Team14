@@ -6,8 +6,6 @@ import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.World;
-import java.util.ArrayList;
-import com.badlogic.gdx.physics.box2d.Fixture;
 
 public class RAContactListener implements ContactListener
 {
@@ -66,20 +64,11 @@ public class RAContactListener implements ContactListener
 		{
 			obstacle = (Obstacle) colliderBody.getUserData();
 			System.out.println("Collided with obstacle, brah");
-			if (razorback.isDashing())
-			{
-////				ArrayList<Fixture> fixtures = obstacle.body.getFixtureList();
-////				for (Fixture f: fixtures)
-//				destroycolliderBody
-					colliderBody.applyForceToCenter(10.0f, -1000.0f);
-//					world.destroyBody(colliderBody);
-////					obstacle.body.destroyFixture(f);
-////				obstacle.body.setActive(false);
-			}
-//				World world = contact.
-//				obstacle.body.destroyFixture(fixture)
+			if (!razorback.isDashing())
+				razorback.setState(Razorback.DIE);
+			else
+				obstacle.setDestroyed();
 		}
-		
 	}
 
 	@Override
