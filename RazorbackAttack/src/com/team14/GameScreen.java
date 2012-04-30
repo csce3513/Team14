@@ -282,13 +282,19 @@ public class GameScreen implements Screen, InputProcessor
 		switch (keycode)
 		{
 			case (Keys.DPAD_UP):
-				if (razorback.jump())
-					jumpSound.play();
+				if (razorback != null)
+				{
+					if (razorback.jump())
+						jumpSound.play();
+				}
 				break;
 			case (Keys.CONTROL_LEFT):
-				if (!razorback.isDashing())
-					dashSound.play();
-				razorback.dash();
+				if (razorback != null)
+				{
+					if (!razorback.isDashing())
+						dashSound.play();
+					razorback.dash();
+				}
 				break;
 			case (Keys.X):
 				// For now, summons a new HelpScreen
