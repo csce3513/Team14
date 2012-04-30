@@ -46,10 +46,13 @@ public class Platforms
 		
 		world = w;
 		
+		/**
+		 * These platforms are set the same each time for the test cases.
+		 */
 		platformList = new LinkedList<Platform>();
 		platformList.add(getNewPlatform(1, 0, -200));
-		platformList.add(getNewPlatform(2, 1400, -200));
-		platformList.add(getNewPlatform(7, 2300, -200));
+		platformList.add(getNewPlatform(2, 1600, -100));
+		platformList.add(getNewPlatform(7, 2500, -200));
 	}
 
 	private Platform getNewPlatform(int num, float xpos, float ypos)

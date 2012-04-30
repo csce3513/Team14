@@ -45,15 +45,16 @@ public class TestJump
 		try { Thread.sleep(100); } catch(InterruptedException e) { }
 		
 		// Get existing velocity
-		i = game.gameScreen.razorback.getYVelocity();
-		
+		i = game.gameScreen.razorback.getYPosition();
+
 		// Jump again
 		game.gameScreen.razorback.jump();
-		j = game.gameScreen.razorback.getYVelocity();
+		j = game.gameScreen.razorback.getXPosition();
+		
 		System.out.println("Second jump - initial vel: " + i + ", jump vel: " + j);
 		
 		// Make the assertion
-		assertTrue(j > i);
+		assertTrue(Math.abs(j) > i);
 		
 		/**
 		 * Test that we can't jump more than twice.
