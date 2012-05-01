@@ -16,8 +16,7 @@ public class TestObstacle {
         // Wait 2s for game to appear
         try { Thread.sleep(2000); } catch(InterruptedException e) { }
 
-		int currPlatform = game.gameScreen.platforms.getCurrentPlatform
-				(game.gameScreen.razorback.getXPosition());
+		int currPlatform = game.gameScreen.platforms.getCurrentPlatform(game.gameScreen.razorback.getXPosition());
         Obstacle obstacle = game.gameScreen.platforms.platformList.get(currPlatform + 2).obstacle;
         assertFalse(obstacle.isDestroyed());
         try { Thread.sleep(10000); } catch(InterruptedException e) { }
