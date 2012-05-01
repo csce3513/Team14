@@ -32,7 +32,7 @@ public class Platform
 {
 	private Body body;
     private Texture texture;
-	private Obstacle obstacle;
+	public Obstacle obstacle;
     public TextureRegion tr;
     private World world;
     
@@ -123,6 +123,11 @@ public class Platform
 	public float getEnd()
 	{
 		return body.getPosition().x * Utils.PIXELS_PER_METER + xSize;
+	}
+	
+	public float getY()
+	{
+		return body.getPosition().y;
 	}
 	
 	@Override

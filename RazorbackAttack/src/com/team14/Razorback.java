@@ -390,6 +390,13 @@ public class Razorback
 		return state.get(DASH);
 	}
 	
+	public boolean isJumping()
+	{
+		if ((state.get(JUMP)) || (state.get(DOUBLEJUMP)))
+			return true;
+		else
+			return false;
+	}
 	public boolean isDying()
 	{
 		return state.get(DIE);

@@ -282,7 +282,7 @@ public class GameScreen implements Screen, InputProcessor
 	        iconRegion2 = new TextureRegion(iconTexture, 64, 0, 64, 32);
 	        
 			font = TrueTypeFontFactory.createBitmapFont(Gdx.files.internal("assets/dlxfont.ttf"), FONT_CHARACTERS, 7.5f, 7.5f, 1.0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-//			try { Thread.sleep(500); } catch(InterruptedException e) { }
+			
 			razorback.setXVelocity(Razorback.normalXVelocity);
 			initialized = true;
 		}

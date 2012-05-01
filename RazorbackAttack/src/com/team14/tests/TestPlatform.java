@@ -37,27 +37,38 @@ public class TestPlatform
         try { Thread.sleep(5000); } catch(InterruptedException e) { }
         size = game.gameScreen.platforms.platformList.size();
         assertEquals(size, Integer.valueOf(3));     
+        // Wait another five seconds to cycle through some platforms...
+        try { Thread.sleep(5000); } catch(InterruptedException e) { }
+        size = game.gameScreen.platforms.platformList.size();
+        assertEquals(size, Integer.valueOf(3));     
         
         // SECOND TEST
         // =========================================================================
         // Assert that all new platforms are placed after the current one.
-        // This test will increase the Razorback's position by large increments
-        // quickly and check to see that new platforms are a
-        for (int i = (int) game.gameScreen.razorback.getXPosition(); i < 1000000; i++)
-        {
-        	int currPlatform = game.gameScreen.platforms.getCurrentPlatform(game.gameScreen.razorback.getXPosition());
-        	
-        	if (currPlatform == -1)
-        	{
-        		System.out.println("skipping");
-        		continue;
-        	}
-        	float currPlatformX = game.gameScreen.platforms.platformList.get(currPlatform).getStart();
-        	float nextPlatformX = game.gameScreen.platforms.platformList.get(currPlatform+1).getStart();
-        	assertTrue(nextPlatformX > currPlatformX);
-        	i += 1000;
-            try { Thread.sleep(500); } catch(InterruptedException e) { }
-        	game.gameScreen.razorback.setXPosition(i * 46.6f);        	
-        }
+        int currPlatform = game.gameScreen.platforms.getCurrentPlatform(game.gameScreen.razorback.getXPosition());
+    	float currPlatformX = game.gameScreen.platforms.platformList.get(currPlatform).getStart();
+    	float nextPlatformX = game.gameScreen.platforms.platformList.get(currPlatform+1).getStart();
+    	float lastPlatformX = game.gameScreen.platforms.platformList.get(currPlatform+2).getStart();
+    	assertTrue(lastPlatformX > nextPlatformX);
+    	assertTrue(nextPlatformX > currPlatformX);
+    	
+    	// THIRD TEST
+    	// =========================================================================
+    	// Test that the platforms aren't placed so high that the razorback can't 
+    	// reach them.
+    	float runningHeight = game.gameScreen.razorback.getYPosition();
+    	float jumpApexHeight = 0.0f;
+    	game.gameScreen.razorback.jump();
+    	while (game.gameScreen.razorback.isJumping())
+    	{
+    		if (jumpApexHeight < game.gameScreen.razorback.getYPosition())
+    			jumpApexHeight = game.gameScreen.razorback.getYPosition();
+    	}
+    	float jumpHeight = jumpApexHeight - runningHeight;
+    	float currPlatformY = game.gameScreen.platforms.platformList.get(currPlatform).getY();
+    	float nextPlatformY = game.gameScreen.platforms.platformList.get(currPlatform+1).getY();
+    	float lastPlatformY = game.gameScreen.platforms.platformList.get(currPlatform+2).getY();
+    	assertTrue((nextPlatformY - currPlatformY) < jumpHeight);
+    	assertTrue((lastPlatformY - nextPlatformY) < jumpHeight);
 	}
 }
