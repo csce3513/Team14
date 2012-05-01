@@ -3,6 +3,7 @@ package com.team14;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Files.FileType;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
@@ -10,7 +11,7 @@ import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.Texture;  
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;  
 
-public class IntroScreen implements Screen
+public class IntroScreen implements Screen, InputProcessor
 {  
 	private SpriteBatch batch;  
 	private Texture splashTexture;
@@ -34,6 +35,7 @@ public class IntroScreen implements Screen
 	@Override  
 	public void show()
 	{
+		Gdx.input.setInputProcessor(this);
 		music = Gdx.audio.newMusic(Gdx.files.getFileHandle("assets/music/start.mp3", FileType.Internal));
         music.setLooping(true);
         music.play();
@@ -50,24 +52,6 @@ public class IntroScreen implements Screen
       
 	public void render (float delta)
 	{
-		if (Gdx.input.isKeyPressed(Keys.SPACE))
-		{
-			game.setScreen(gameScreen);
-			System.out.println("Going to GameScreen...");
-		}
-		if (Gdx.input.isKeyPressed(Keys.H))
-		{
-			game.setScreen(new HelpScreen(game, this, music, false));
-			System.out.println("Going to HelpScreen...");
-		}
-		if (Gdx.input.isKeyPressed(Keys.D))
-		{
-			info.setMotorcycleMode();
-		}
-		if (Gdx.input.isKeyPressed(Keys.X))
-		{
-			Gdx.app.exit();
-		}
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT); // This cryptic line clears the screen.  
 		batch.begin();  
 		batch.draw(splashTexture, 0, 0);  
@@ -87,5 +71,75 @@ public class IntroScreen implements Screen
 	public void resize (int width, int height) { }  
 	public void pause () { }  
 	public void resume () { }  
-	public void dispose () { }  
+	public void dispose ()
+	{
+		batch.dispose();
+		music.dispose();
+	}
+
+	@Override
+	public boolean keyDown(int keycode) {
+		boolean down = true;
+		switch (keycode)
+		{
+			case (Keys.SPACE):
+				game.setScreen(gameScreen);
+				break;
+			case (Keys.H):
+				game.setScreen(new HelpScreen(game, this, music, false));
+				break;
+			case (Keys.D):
+				info.setMotorcycleMode();
+				break;
+			case (Keys.X):
+				Gdx.app.exit();
+				break;
+			default:
+				down = false;
+				break;
+		}
+		return down;
+	}
+
+	@Override
+	public boolean keyUp(int keycode) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean keyTyped(char character) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean touchDown(int x, int y, int pointer, int button) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean touchUp(int x, int y, int pointer, int button) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean touchDragged(int x, int y, int pointer) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean touchMoved(int x, int y) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean scrolled(int amount) {
+		// TODO Auto-generated method stub
+		return false;
+	}  
 }  

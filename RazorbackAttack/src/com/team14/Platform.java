@@ -17,12 +17,14 @@
 package com.team14;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.ChainShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 
@@ -49,30 +51,59 @@ public class Platform
 	 * @param xPos - X position at which to place platform 
 	 * @param yPos - Y position at which to place platform
 	 */
-	public Platform(World w, int num, FixtureDef[] fixtureDef, Vector2 dimensions, Vector2 obstaclePos, float xPos, float yPos)
+	public Platform(World w, int num, float xPos, float yPos)
 	{
 		world = w;
-		
+
 		texture = new Texture(Gdx.files.internal("assets/platforms/platform" + num + ".png"));
-			
-		xSize = (int) dimensions.x;
-		ySize = (int) dimensions.y;
+		String collisionsFile = "assets/platforms/platform" + num + ".txt";
+		FileHandle fh = Gdx.files.internal(collisionsFile);
+		String collisionFile = fh.readString();
+		String lines[] = collisionFile.split("\\r?\\n");
+
+		/* Get dimensions of platform, pull texture region from texture file */
+		String dimensions[] = lines[0].split(" ");
+		xSize = Integer.parseInt(dimensions[0]);
+		ySize = Integer.parseInt(dimensions[1]);
 		tr = new TextureRegion(texture, 0, 0, xSize, ySize);
 
-		BodyDef bodyDef = new BodyDef();
-		bodyDef.type = BodyDef.BodyType.StaticBody;
-		float yRandomized = Utils.getRandomNum(75) * Utils.getRandomSign();
-		bodyDef.position.set(xPos / Utils.PIXELS_PER_METER, (yPos - ySize + yRandomized) / Utils.PIXELS_PER_METER);
+		/* Create obstacle for this platform, if one is defined */
+		String obstaclePos[] = lines[1].split(" ");
+		if (Integer.parseInt(obstaclePos[0]) != 0)
+			obstacle = new Obstacle(world, (Integer.parseInt(obstaclePos[0]) + xPos), yPos - Integer.parseInt(obstaclePos[1]));
 
-		body = world.createBody(bodyDef);
-		
-		for (int i = 0; i < fixtureDef.length; i++)
-			if (fixtureDef[i] != null)
-				body.createFixture(fixtureDef[i]);
-		if (obstaclePos.x != 0.0)
-			obstacle = new Obstacle(world, (obstaclePos.x + xPos), yPos + yRandomized - obstaclePos.y);
+		String bodyVertices[] = lines[2].split(" ");
+		int filePos = 3;	// for keeping track of where we are in the file
 
-		body.setUserData(this);
+		for (int i = 0; i < bodyVertices.length; i++)
+		{
+			int numVertices = Integer.parseInt(bodyVertices[i]);
+			
+			Vector2[] vertices = new Vector2[numVertices];
+			for (int j = 0; j < numVertices; j++)
+			{
+				String cols[] = lines[filePos + j].split(" ");
+				String xcoord = cols[0];
+				String ycoord = cols[1];
+				vertices[j] = new Vector2(Integer.parseInt(xcoord) / Utils.PIXELS_PER_METER, (Integer.parseInt(ycoord) * -1 + ySize) / Utils.PIXELS_PER_METER);
+			}
+			filePos += numVertices;
+			ChainShape chain = new ChainShape();
+			chain.createChain(vertices);
+			FixtureDef fixtureDef = new FixtureDef();
+			fixtureDef.shape = chain;
+			fixtureDef.density = 0.1f;
+			fixtureDef.friction = 0.0f;
+			fixtureDef.restitution = 0.0f;
+	
+			BodyDef bodyDef = new BodyDef();
+			bodyDef.type = BodyDef.BodyType.StaticBody;
+			bodyDef.position.set(xPos / Utils.PIXELS_PER_METER, (yPos - ySize) / Utils.PIXELS_PER_METER);
+			body = world.createBody(bodyDef);
+			body.createFixture(fixtureDef);
+			chain.dispose();
+			body.setUserData(this);
+		}
 	}
 
 	public void render(SpriteBatch spriteBatch)

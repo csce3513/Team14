@@ -66,7 +66,6 @@ public class RAContactListener implements ContactListener
 			obstacle = (Obstacle) colliderBody.getUserData();
 			if (!obstacle.isDestroyed())
 			{
-				System.out.println("Collided with obstacle, brah");
 				if (!razorback.isDashing())
 					razorback.setState(Razorback.DIE);
 				else

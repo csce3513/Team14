@@ -71,7 +71,6 @@ public class Obstacle
         bodyDef.active = true;
 		body = world.createBody(bodyDef);
 		
-		System.out.println("Obstacle pos: " + xpos + ", " + ypos);
 		Vector2[] vertices = new Vector2[4];
 		vertices[0] = new Vector2(0, 0);
 		vertices[1] = new Vector2(73 / Utils.PIXELS_PER_METER, 0);
@@ -87,7 +86,6 @@ public class Obstacle
 		fixtureDef.restitution = 0.0f;
 		fixtureDef.isSensor = true;
 		body.createFixture(fixtureDef);
-		System.out.println("creating fixture for obstacle");
 		body.setUserData(this);
 		chain.dispose();
         explosionSound = Gdx.audio.newMusic(Gdx.files.getFileHandle("assets/music/explosion.mp3", FileType.Internal));

@@ -57,8 +57,8 @@ public class Razorback
 	public static final int DIE = 4;
 	public static final int DEAD = 5;
 
-    public static final float normalXVelocity = 8.0f;
-    public static final float dashXVelocity = 12.0f;
+    public static final float normalXVelocity = 10.0f;
+    public static final float dashXVelocity = 14.0f;
 	public static final float PIXELS_PER_METER = 46.6f;
 
     private Timer dashTimer;
@@ -126,7 +126,7 @@ public class Razorback
         bodyDef.type = BodyDef.BodyType.DynamicBody;
         
         /* Default start position */
-        bodyDef.position.set(0.0f, 0.0f);
+        bodyDef.position.set(2.0f, 0.5f);
 
         body = w.createBody(bodyDef);
 
@@ -412,5 +412,14 @@ public class Razorback
 	public String toString()
 	{
 		return "RAZORBACK";
+	}
+
+	public void dispose()
+	{
+		walkSheet.dispose();
+		dashSheet.dispose();
+		deathSheet.dispose();
+		jumpSheet.dispose();
+		motorcycleTexture.dispose();
 	}
 }

@@ -1,17 +1,10 @@
 package com.team14;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-//import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-//import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-//import com.badlogic.gdx.physics.box2d.Body;
-//import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
-import com.badlogic.gdx.physics.box2d.ChainShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 
@@ -24,24 +17,15 @@ public class Platforms
 	Box2DDebugRenderer renderer;
 	public LinkedList<Platform> platformList;
 	
-	//
 	FixtureDef fixtureDef[][];
 	Vector2 dimensions[];
 	Vector2 obstacles[];
-	//
 	
 	public Platforms(World w)
 	{
 		camera = new OrthographicCamera(800, 600);
 		camera.position.set(0, 0, 0);
 		renderer = new Box2DDebugRenderer(true, false, false);
-
-		//
-		fixtureDef = new FixtureDef[Platform.MAX_PLATFORMS][2];
-		dimensions = new Vector2[Platform.MAX_PLATFORMS];
-		obstacles = new Vector2[Platform.MAX_PLATFORMS];
-		this.loadVertices();
-		//
 		
 		world = w;
 		
@@ -49,14 +33,15 @@ public class Platforms
 		 * These platforms are set the same each time for the test cases.
 		 */
 		platformList = new LinkedList<Platform>();
-		platformList.add(getNewPlatform(1, 0, -200));
+		platformList.add(getNewPlatform(1, 0, -100));
 		platformList.add(getNewPlatform(2, 1700, -100));
 		platformList.add(getNewPlatform(7, 2800, -200));
 	}
 
 	public Platform getNewPlatform(int num, float xpos, float ypos)
 	{
-		Platform p = new Platform(world, num, fixtureDef[num-1], dimensions[num-1], obstacles[num-1], xpos, ypos);
+		float yRandomized = Utils.getRandomNum(75) * Utils.getRandomSign();
+		Platform p = new Platform(world, num, xpos, ypos + yRandomized);
 		return p;
 	}
 	
@@ -140,52 +125,5 @@ public class Platforms
 					"getCamera() called out of sequence");
 		}
 		return camera;
-	}
-	
-	/**
-	 * Precaches the vertices so we don't have to load them from a file each time
-	 * we create a platform.
-	 */
-	public void loadVertices()
-	{
-		for (int h = 0; h < Platform.MAX_PLATFORMS; h++)
-		{
-			String collisionsFile = "assets/platforms/platform" + (h + 1) + ".txt";
-			FileHandle fh = Gdx.files.internal(collisionsFile);
-			String collisionFile = fh.readString();
-			String lines[] = collisionFile.split("\\r?\\n");
-
-			String dims[] = lines[0].split(" ");
-			dimensions[h] = new Vector2(Integer.parseInt(dims[0]), Integer.parseInt(dims[1]));
-			
-			String obs[] = lines[1].split(" ");
-			obstacles[h] = new Vector2(Integer.parseInt(obs[0]), Integer.parseInt(obs[1]));
-			
-			String bodyVertices[] = lines[2].split(" ");
-			int filePos = 3;	// for keeping track of where we are in the file
-
-			for (int i = 0; i < bodyVertices.length; i++)
-			{
-				int numVertices = Integer.parseInt(bodyVertices[i]);
-				
-				Vector2[] vertices = new Vector2[numVertices];
-				for (int j = 0; j < numVertices; j++)
-				{
-					String cols[] = lines[filePos + j].split(" ");
-					String xcoord = cols[0];
-					String ycoord = cols[1];
-					vertices[j] = new Vector2(Integer.parseInt(xcoord) / Utils.PIXELS_PER_METER, (Integer.parseInt(ycoord) * -1 + Integer.parseInt(dims[1])) / Utils.PIXELS_PER_METER);
-				}
-				filePos += numVertices;
-				ChainShape chain = new ChainShape();
-				chain.createChain(vertices);
-				fixtureDef[h][i] = new FixtureDef();
-				fixtureDef[h][i].shape = chain;
-				fixtureDef[h][i].density = 0.1f;
-				fixtureDef[h][i].friction = 0.0f;
-				fixtureDef[h][i].restitution = 0.0f;
-//				chain.dispose();
-			}
-		}
 	}
 }

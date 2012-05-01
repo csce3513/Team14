@@ -51,6 +51,7 @@ public class GameScreen implements Screen, InputProcessor
 	private boolean initialized = false;
 	public LifeLostScreen lifeLostScreen;
 	public GameOverScreen gameOverScreen;
+	public HelpScreen pauseScreen;
 	private int score = 0;
 	private Music music;
 	private Music jumpSound;
@@ -77,8 +78,9 @@ public class GameScreen implements Screen, InputProcessor
 		screenWidth = -1;	// Defer until create() when Gdx is initialized.
 		screenHeight = -1;
 		
-		gameOverScreen = new GameOverScreen(game, info, music);
+		gameOverScreen = new GameOverScreen(game, info, music, this);
 		lifeLostScreen = new LifeLostScreen(game, info, music, this);
+		pauseScreen = new HelpScreen(game, this, music, true);
 	}
 	
 	public void updateWorld()
@@ -128,7 +130,7 @@ public class GameScreen implements Screen, InputProcessor
 	public void render(float delta)
 	{
 		long now = System.nanoTime();
-		
+
 		/**
 		 * First we update the world and razorback. Then we display them. 
 		 */ 
@@ -162,7 +164,7 @@ public class GameScreen implements Screen, InputProcessor
 		/**
 		 * Check for collision or falling between platforms
 		 */
-		if ((razorback.getXVelocity() <= 3.0f) || ((razorback.getYPosition() * Utils.PIXELS_PER_METER) < -1000))
+		if ((razorback.getXVelocity() < 1.0f) || ((razorback.getYPosition() * Utils.PIXELS_PER_METER) < -1000))
 		{
 			// Tell the GameInfo object that we're dead, and wish to record a new score
 			razorback.setState(Razorback.DIE);
@@ -209,6 +211,7 @@ public class GameScreen implements Screen, InputProcessor
 	@Override
 	public void show()
 	{
+		Gdx.input.setInputProcessor(this);
 		/**
 		 * Only initialize on first call
 		 */
@@ -279,6 +282,8 @@ public class GameScreen implements Screen, InputProcessor
 	        iconRegion2 = new TextureRegion(iconTexture, 64, 0, 64, 32);
 	        
 			font = TrueTypeFontFactory.createBitmapFont(Gdx.files.internal("assets/dlxfont.ttf"), FONT_CHARACTERS, 7.5f, 7.5f, 1.0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+//			try { Thread.sleep(500); } catch(InterruptedException e) { }
+			razorback.setXVelocity(Razorback.normalXVelocity);
 			initialized = true;
 		}
 		
@@ -307,7 +312,23 @@ public class GameScreen implements Screen, InputProcessor
 			if (!motorSound.isPlaying())
 				motorSound.play();
 	}
-	@Override public void dispose() { }
+	@Override public void dispose() { 
+		worldBatch.dispose();
+		hudBatch.dispose();
+		if (!music.isPlaying())
+				music.dispose();
+		jumpSound.dispose();
+		dashSound.dispose();
+		deathSound.dispose();
+		motorSound.dispose();
+		font.dispose();
+		iconTexture.dispose();
+		razorback.dispose();
+		razorback = null;
+		pauseScreen.dispose();
+		lifeLostScreen.dispose();
+		gameOverScreen.dispose();
+	}
 	
 	/**
 	 * InputProcessor methods
@@ -328,15 +349,13 @@ public class GameScreen implements Screen, InputProcessor
 			case (Keys.CONTROL_LEFT):
 				if (razorback != null)
 				{
-					if (!razorback.isDashing())
-						dashSound.play();
 					razorback.dash();
+					if (razorback.isDashing())
+						dashSound.play();
 				}
 				break;
 			case (Keys.X):
-				// For now, summons a new HelpScreen
-				// TODO: Create an actual PauseScreen class+image
-				game.setScreen(new HelpScreen(game, this, music, true));
+				game.setScreen(pauseScreen);
 				break;
 			default:
 				down = false;
