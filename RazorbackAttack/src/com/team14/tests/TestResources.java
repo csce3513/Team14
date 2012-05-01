@@ -13,7 +13,7 @@ public class TestResources {
 		
 		try
 		{
-			handle = Gdx.files.internal("assets");
+			handle = Gdx.files.internal("assets/obstacle1.png");
 		}
 		catch (NullPointerException npe)
 		{

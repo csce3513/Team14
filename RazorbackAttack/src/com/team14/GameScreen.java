@@ -8,8 +8,11 @@ import com.badlogic.gdx.Files.FileType;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL10;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.stbtt.TrueTypeFontFactory;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
 
@@ -21,9 +24,7 @@ public class GameScreen implements Screen, InputProcessor
 	/* The libgdx SpriteBatch -- used to optimize sprite drawing. */
 	private SpriteBatch worldBatch;
 
-	/**
-	 * The libgdx SpriteBatch for the heads up display (score+lives)
-	 */
+	/* The libgdx SpriteBatch for the heads up display (score+lives) */
 	private SpriteBatch hudBatch;
 
 	/**
@@ -35,15 +36,8 @@ public class GameScreen implements Screen, InputProcessor
 	/* This is the player character. It will be created as a dynamic object. */
 	public Razorback razorback;
 	public Platforms platforms;
-
-	/**
-	 * Box2d works best with small values. If you use pixels directly you will
-	 * get weird results -- speeds and accelerations not feeling quite right.
-	 * Common practice is to use a constant to convert pixels to and from
-	 * "meters".
-	 */
-	public static final float PIXELS_PER_METER = 46.6f;
-
+	private RAContactListener contactListener;
+	
 	/**
 	 * The screen's width and height. This may not match that computed by
 	 * libgdx's gdx.graphics.getWidth() / getHeight() on devices that make use
@@ -51,20 +45,30 @@ public class GameScreen implements Screen, InputProcessor
 	 */
 	private int screenWidth;
 	private int screenHeight;
+	
 	private Game game;
-	private boolean initialized = false;
 	public GameInfo info;
+	private boolean initialized = false;
 	public LifeLostScreen lifeLostScreen;
 	public GameOverScreen gameOverScreen;
+	public HelpScreen pauseScreen;
+	private int score = 0;
 	private Music music;
 	private Music jumpSound;
-	
+	private Music dashSound;
+	private Music deathSound;
+	private Music motorSound;
+	private Texture iconTexture;
+	private TextureRegion iconRegion1, iconRegion2;
+	private float lastXpos = 0.0f; // for score tracking
+
 	/**
 	 * The camera responsible for showing the score and lives above the acutal game
 	 */
 	private HUDCamera hudCamera;
 	private BitmapFont font;
-	
+	public static final String FONT_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789][_!$%#@|\\/?-+=()*&.;,{}\"´`'<>";
+
 	public GameScreen(Game g, GameInfo i, Music m)
 	{
 		info = i;
@@ -74,12 +78,17 @@ public class GameScreen implements Screen, InputProcessor
 		screenWidth = -1;	// Defer until create() when Gdx is initialized.
 		screenHeight = -1;
 		
-		gameOverScreen = new GameOverScreen(game, info, music);
+		gameOverScreen = new GameOverScreen(game, info, music, this);
 		lifeLostScreen = new LifeLostScreen(game, info, music, this);
+		pauseScreen = new HelpScreen(game, this, music, true);
 	}
 	
 	public void updateWorld()
 	{
+		score += (razorback.getXPosition() - lastXpos) * Utils.PIXELS_PER_METER;
+		lastXpos = razorback.getXPosition();
+		
+
 		/**
 		 * Have box2d update the positions and velocities (and etc) of all
 		 * tracked objects. The second and third argument specify the number of
@@ -88,14 +97,15 @@ public class GameScreen implements Screen, InputProcessor
 		 */
 		world.step(Gdx.app.getGraphics().getDeltaTime(), 3, 3);
 
+		// Clear the screen and show a nice blue backdrop.
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
-
-		// A nice(?), blue backdrop.
-//		Gdx.gl.glClearColor(0, 0.5f, 0.9f, 0);
 		Gdx.gl.glClearColor(0.2421875f, 0.43359375f, 0.73046875f, 0);
+
+		platforms.removeOldAndAddNew(razorback.getXPosition());
+		
 		// Offset the camera by 300 so Razorback is near left edge of screen
-		platforms.getCamera().position.x = PIXELS_PER_METER * razorback.getXPosition() + 300;
-		platforms.getCamera().position.y = PIXELS_PER_METER * razorback.getYPosition();
+		platforms.getCamera().position.x = Utils.PIXELS_PER_METER * razorback.getXPosition() + 150;
+		platforms.getCamera().position.y = Utils.PIXELS_PER_METER * razorback.getYPosition();
 		
 		if (platforms.getCamera().position.x < Gdx.graphics.getWidth() / 2)
 		{
@@ -120,38 +130,56 @@ public class GameScreen implements Screen, InputProcessor
 	public void render(float delta)
 	{
 		long now = System.nanoTime();
-		
+
 		/**
-		 * First we update the tilemap and razorback. Then we display them. 
+		 * First we update the world and razorback. Then we display them. 
 		 */ 
-		updateWorld();		// Update tilemap + camera position, HUD camera
+		updateWorld();		// Update world + camera position, HUD camera
 		worldBatch.begin();	// Prepare the world and razorback SpriteBatch for drawing.
-		platforms.update(worldBatch, razorback.getXPosition());
+		platforms.draw(worldBatch);
 		razorback.move(worldBatch);
 		worldBatch.end();	// "Flush" the sprites to screen.
-		
+
 		/**
 		 * Now we update the score and lives, then display them.
 		 */
 		updateHUD();
 		hudBatch.begin();
-		CharSequence str = "Lives: " + info.lives() +  "  Score: " + Integer.toString((int) getScore()) + ", FPS: " + Gdx.graphics.getFramesPerSecond();
+		for (int i = 0; i <= GameInfo.MAXLIVES; i++)
+		{
+			if (info.life() <= i)
+				hudBatch.draw(iconRegion1, 32 + (i * 64), 550);
+			else
+				hudBatch.draw(iconRegion2, 32 + (i * 64), 550);
+		}
+		
+		CharSequence str = "" + getScore();
+		font.setScale(0.2f);
 		font.setColor(1.0f, 1.0f, 1.0f, 1.0f);
-		font.draw(hudBatch, str, 50, 550);
+		font.draw(hudBatch, str, 350, 550);
+		str = "[X] PAUSE";
+		font.draw(hudBatch, str, 580, 550);
 		hudBatch.end();
 		
 		/**
 		 * Check for collision or falling between platforms
 		 */
-		if ((razorback.getXVelocity() <= 0.0f) || ((razorback.getYPosition() * PIXELS_PER_METER) < -1000))
+		if ((razorback.getXVelocity() < 1.0f) || ((razorback.getYPosition() * Utils.PIXELS_PER_METER) < -1000))
 		{
 			// Tell the GameInfo object that we're dead, and wish to record a new score
 			razorback.setState(Razorback.DIE);
-			
+			if (!deathSound.isPlaying())
+				deathSound.play();
 			if (razorback.isDead())
 			{
-				info.loseLife((int) getScore());
+				info.loseLife(getScore());
 			
+				world = null;
+				platforms = null;
+				razorback = null;
+				hudBatch = null;
+				worldBatch = null;
+				
 				if (info.gameOver())
 					game.setScreen(gameOverScreen);
 				else
@@ -183,6 +211,7 @@ public class GameScreen implements Screen, InputProcessor
 	@Override
 	public void show()
 	{
+		Gdx.input.setInputProcessor(this);
 		/**
 		 * Only initialize on first call
 		 */
@@ -209,8 +238,8 @@ public class GameScreen implements Screen, InputProcessor
 			/**
 			 * Work from background to foreground
 			 */
+			razorback = new Razorback(world, info);
 			platforms = new Platforms(world);
-			razorback = new Razorback(world);
 			font = new BitmapFont();
 
 			lastRender = System.nanoTime();
@@ -224,11 +253,37 @@ public class GameScreen implements Screen, InputProcessor
 			hudBatch = new SpriteBatch();
 			
 			/**
+			 * This is fun. This will tell us if two bodies collide.
+			 */
+			contactListener = new RAContactListener(world, this);
+			world.setContactListener(contactListener);
+			
+			/**
 			 * Initialize objects needed to play sounds
 			 */
 	        jumpSound = Gdx.audio.newMusic(Gdx.files.getFileHandle("assets/music/jump.wav", FileType.Internal));
 	        jumpSound.setLooping(false);
 	        jumpSound.setVolume(0.2f);	// jump.wav is pretty loud!
+
+	        dashSound = Gdx.audio.newMusic(Gdx.files.getFileHandle("assets/music/dash.mp3", FileType.Internal));
+	        dashSound.setLooping(false);
+	        dashSound.setVolume(0.9f);
+
+	        deathSound = Gdx.audio.newMusic(Gdx.files.getFileHandle("assets/music/death.wav", FileType.Internal));
+	        deathSound.setLooping(false);
+	        deathSound.setVolume(0.9f);
+
+	        motorSound = Gdx.audio.newMusic(Gdx.files.getFileHandle("assets/music/motor.wav", FileType.Internal));
+	        motorSound.setLooping(true);
+	        motorSound.setVolume(0.9f);
+
+	        iconTexture = new Texture(Gdx.files.internal("assets/icons.png"));
+	        iconRegion1 = new TextureRegion(iconTexture, 0, 0, 64, 32);
+	        iconRegion2 = new TextureRegion(iconTexture, 64, 0, 64, 32);
+	        
+			font = TrueTypeFontFactory.createBitmapFont(Gdx.files.internal("assets/dlxfont.ttf"), FONT_CHARACTERS, 7.5f, 7.5f, 1.0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+//			try { Thread.sleep(500); } catch(InterruptedException e) { }
+			razorback.setXVelocity(Razorback.normalXVelocity);
 			initialized = true;
 		}
 		
@@ -237,15 +292,44 @@ public class GameScreen implements Screen, InputProcessor
 		 * and are coming back to this screen, will play music from pause point.
 		 */
 		if (music != null)
+		{
 			if (!music.isPlaying())
 				music.play();
+			if (info.motorcycleMode())
+				if (!motorSound.isPlaying())
+					motorSound.play();
+		}
 	}
 
-	@Override public void hide() { }
+	@Override public void hide() { 
+		if (info.motorcycleMode())
+			if (motorSound.isPlaying())
+				motorSound.pause();
+	}
 	@Override public void pause() { }
-	@Override public void resume() { }
-	@Override public void dispose() { }
-
+	@Override public void resume() { 
+		if (info.motorcycleMode())
+			if (!motorSound.isPlaying())
+				motorSound.play();
+	}
+	@Override public void dispose() { 
+		worldBatch.dispose();
+		hudBatch.dispose();
+		if (!music.isPlaying())
+				music.dispose();
+		jumpSound.dispose();
+		dashSound.dispose();
+		deathSound.dispose();
+		motorSound.dispose();
+		font.dispose();
+		iconTexture.dispose();
+		razorback.dispose();
+		razorback = null;
+		pauseScreen.dispose();
+		lifeLostScreen.dispose();
+		gameOverScreen.dispose();
+	}
+	
 	/**
 	 * InputProcessor methods
 	 */
@@ -256,16 +340,22 @@ public class GameScreen implements Screen, InputProcessor
 		switch (keycode)
 		{
 			case (Keys.DPAD_UP):
-				if (razorback.jump())
-					jumpSound.play();
+				if (razorback != null)
+				{
+					if (razorback.jump())
+						jumpSound.play();
+				}
 				break;
 			case (Keys.CONTROL_LEFT):
-				razorback.dash();
+				if (razorback != null)
+				{
+					razorback.dash();
+					if (razorback.isDashing())
+						dashSound.play();
+				}
 				break;
 			case (Keys.X):
-				// For now, summons a new HelpScreen
-				// TODO: Create an actual PauseScreen class+image
-				game.setScreen(new HelpScreen(game, this, music));
+				game.setScreen(pauseScreen);
 				break;
 			default:
 				down = false;
@@ -316,8 +406,13 @@ public class GameScreen implements Screen, InputProcessor
 		return false;
 	}
 
-	public float getScore()
+	public void addPoints(int points)
 	{
-		return PIXELS_PER_METER * razorback.getXPosition();
+		score += points;
+	}
+	
+	public int getScore()
+	{
+		return score;
 	}
 }

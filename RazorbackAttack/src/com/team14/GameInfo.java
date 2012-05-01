@@ -5,7 +5,9 @@
 
 package com.team14;
 
-public class GameInfo {
+public class GameInfo
+{
+	private boolean motorcycleMode = false;
 	private int livesRemaining;
 	private int[] scores = new int[3];
 	private int currentLife = 0;
@@ -17,7 +19,7 @@ public class GameInfo {
 		livesRemaining = MAXLIVES;// - 1;
 		// array of integers to keep track of score for each life
 		for (int i = 0; i < MAXLIVES; i++)
-			scores[i] = 0;
+			scores[i] = -1;
 	}
 	
 	public void setScore(int score)
@@ -35,7 +37,7 @@ public class GameInfo {
 	public int getScore(int life)
 	{
 		// returns the score of a specific life
-		if ((life >= MAXLIVES) || (life < 0))
+		if ((life > MAXLIVES) || (life < 0))
 		{
 			System.out.println("Error: Invalid array index");
 			return -1;
@@ -76,5 +78,15 @@ public class GameInfo {
 	{
 		// checks to see if you are out of lives
 		return (livesRemaining < 0);
+	}
+	
+	public void setMotorcycleMode()
+	{
+		motorcycleMode = true;
+	}
+	
+	public boolean motorcycleMode()
+	{
+		return motorcycleMode;
 	}
 }

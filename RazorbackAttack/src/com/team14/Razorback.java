@@ -11,6 +11,7 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.physics.box2d.CircleShape;
+
 import java.util.BitSet;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -35,13 +36,20 @@ public class Razorback
     private Texture dashSheet;
     private Texture deathSheet;
     private Texture jumpSheet;
+    private Texture motorcycleTexture;
+    private TextureRegion motorcycleTR;
     private TextureRegion currentFrame;
+	private float scale = 1.0f;			// For enlarging the sprite upon dying!
+	private float lastXVelocity;
+	private GameInfo info;
+	
     private float stateTime;
     private float dieTime = 0.0f;
     
 	/* Razorback states */
     private BitSet state; 
-
+    private int dashes = 0;
+    
 	public static final int RUNNING = 0;
 	public static final int JUMP = 1;
 	public static final int DOUBLEJUMP = 2;
@@ -49,38 +57,42 @@ public class Razorback
 	public static final int DIE = 4;
 	public static final int DEAD = 5;
 
-    public static final float normalXVelocity = 13.0f;
-    public static final float dashXVelocity = 20.0f;
+    public static final float normalXVelocity = 10.0f;
+    public static final float dashXVelocity = 14.0f;
 	public static final float PIXELS_PER_METER = 46.6f;
 
     private Timer dashTimer;
-
-	protected Razorback(World w)
+    
+	protected Razorback(World w, GameInfo gi)
     {
         super();
 
+        info = gi;
+        
         /**
          * Load up the texture sheets, create sprites from it.
          */
+        motorcycleTexture = new Texture(Gdx.files.internal("assets/motorcycle2.png"));
+        motorcycleTR = new TextureRegion(motorcycleTexture, 0, 0, 160, 76);
         walkSheet = new Texture(Gdx.files.internal("assets/animation_sheet.png"));
-        walkAnimation = new Animation(0.075f, //25f,
+        walkAnimation = new Animation(0.075f,
                 new TextureRegion(walkSheet, 0, 0, 69, 56),
                 new TextureRegion(walkSheet, 70, 0, 69, 56),
                 new TextureRegion(walkSheet, 139, 0, 69, 56),
                 new TextureRegion(walkSheet, 208, 0, 69, 56),
                 new TextureRegion(walkSheet, 277, 0, 65, 56));
         jumpSheet = new Texture(Gdx.files.internal("assets/jump_sheet.png"));
-        jumpAnimation = new Animation(.85f, //25f,
+        jumpAnimation = new Animation(.85f,
                 new TextureRegion(jumpSheet, 0, 0, 95, 55),
                 new TextureRegion(jumpSheet, 95, 0, 95, 55));
         dashSheet = new Texture(Gdx.files.internal("assets/dash_sheet.png"));
-        dashAnimation = new Animation(0.150f, //25f,
+        dashAnimation = new Animation(0.150f,
                 new TextureRegion(dashSheet, 0, 0, 60, 70),
                 new TextureRegion(dashSheet, 60, 0, 68, 70),
                 new TextureRegion(dashSheet, 128, 0, 68, 70),
                 new TextureRegion(dashSheet, 196, 0, 70, 72));
         deathSheet = new Texture(Gdx.files.internal("assets/death_sheet.png"));
-        deathAnimation = new Animation(0.05f, //25f,
+        deathAnimation = new Animation(0.09f,
                 new TextureRegion(deathSheet, 0, 0, 64, 64),
                 new TextureRegion(deathSheet, 64, 0, 64, 64),
                 new TextureRegion(deathSheet, 128, 0, 64, 64),
@@ -105,7 +117,7 @@ public class Razorback
                 new TextureRegion(deathSheet, 64, 256, 64, 64),
                 new TextureRegion(deathSheet, 128, 256, 64, 64),
                 new TextureRegion(deathSheet, 192, 256, 64, 64),
-                new TextureRegion(deathSheet, 256, 256, 64, 64));
+                new TextureRegion(deathSheet, 262, 256, 64, 64));        
         
         stateTime = 0f;
         
@@ -114,7 +126,7 @@ public class Razorback
         bodyDef.type = BodyDef.BodyType.DynamicBody;
         
         /* Default start position */
-        bodyDef.position.set(0.0f, 0.0f);
+        bodyDef.position.set(2.0f, 0.5f);
 
         body = w.createBody(bodyDef);
 
@@ -138,8 +150,8 @@ public class Razorback
 		fixtureDef.friction = 0.0f; // always moving on ground
 		fixtureDef.restitution = 0.0f;
 		body.createFixture(fixtureDef);
+		body.setUserData(this);
 		shape.dispose();
-
 		world = w;
 		state = new BitSet();
 		state.set(RUNNING);
@@ -147,25 +159,20 @@ public class Razorback
         dashTimer = new Timer();
         /* Set default start velocity */
         setXVelocity(normalXVelocity);
+        lastXVelocity = normalXVelocity;
 	}
 
 
 	public void move(SpriteBatch spriteBatch)
 	{
-    	if ((grounded()) && (!state.get(DASH)))
-        {
-            state.set(RUNNING);
-            state.set(JUMP, false);
-            state.set(DOUBLEJUMP, false);
-            body.applyForceToCenter(0.0f, 0.0f);
-            body.applyForceToCenter(5.0f, 0.0f);
-        }
-
     	stateTime += Gdx.graphics.getDeltaTime();
+    	
+    	lastXVelocity = this.getXVelocity();
     	
     	/* Determine animation based on Razorback state */        
         if (state.get(DIE))
         {
+        	this.setXVelocity(0.0f);
         	currentFrame = deathAnimation.getKeyFrame(dieTime, false);
         	dieTime += Gdx.graphics.getDeltaTime();
 
@@ -176,18 +183,37 @@ public class Razorback
         }
         else if (state.get(DASH))
         {
-    		currentFrame = dashAnimation.getKeyFrame(stateTime, true);
+        	this.setYVelocity(0.0f);
+        	if (info.motorcycleMode())
+        		currentFrame = motorcycleTR;
+        	else
+        		currentFrame = dashAnimation.getKeyFrame(stateTime, true);
         }
         else if ((state.get(JUMP)) || (state.get(DOUBLEJUMP)))
         {
-            currentFrame = jumpAnimation.getKeyFrame(stateTime, true);
+        	if (info.motorcycleMode())
+        		currentFrame = motorcycleTR;
+        	else
+        		currentFrame = jumpAnimation.getKeyFrame(stateTime, true);
         }
         else if (state.get(RUNNING))
         {
-            currentFrame = walkAnimation.getKeyFrame(stateTime, true);        	
+        	if (info.motorcycleMode())
+        		currentFrame = motorcycleTR;
+        	else
+        		currentFrame = walkAnimation.getKeyFrame(stateTime, true);        	
         }
 
-        spriteBatch.draw(currentFrame, PIXELS_PER_METER * body.getPosition().x	- 69 / 2,
+        /**
+         * Let's have some fun with this guy.
+         */
+        if (state.get(DIE))
+        {
+        	scale += 0.06f;
+        	spriteBatch.draw(currentFrame, PIXELS_PER_METER * body.getPosition().x	- 69 / 2, PIXELS_PER_METER * body.getPosition().y - 56 / 2, (int) 0, (int) 0, (int) 69, (int)56, scale, scale, 0.0f);
+        }
+        else
+        	spriteBatch.draw(currentFrame, PIXELS_PER_METER * body.getPosition().x	- 69 / 2,
         		PIXELS_PER_METER * body.getPosition().y - 56 / 2);
     }
 	
@@ -199,7 +225,7 @@ public class Razorback
     	boolean didJump = false;
         
     	/* Handle the cases for each state */
-    	if (state.get(DOUBLEJUMP))
+    	if ((state.get(DOUBLEJUMP)) || (state.get(DIE)))
     	{
     		// Do nothing - we aren't allowed to jump again.
     	}
@@ -217,7 +243,7 @@ public class Razorback
     		{
     			endDash();
     			state.set(DOUBLEJUMP);
-    			setYVelocity(7.0f);
+    			setYVelocity(14.0f);
     			didJump = true;
     		}
     	}
@@ -225,13 +251,23 @@ public class Razorback
         {
         	state.set(RUNNING, false);
         	state.set(JUMP);
-    		setYVelocity(7.0f);
+    		setYVelocity(9.0f);
         	didJump = true;
         }
 
         return didJump;
     }
 
+    public void endJump()
+    {
+    	state.set(RUNNING);
+    	state.set(JUMP, false);
+    	state.set(DOUBLEJUMP, false);
+    	
+    	// Reset dash counter
+    	dashes = 0;
+    }
+    
     /**
      * dash(): Attempts to perform a dash. A dash is 0.5 seconds long.
      *         Ensure that we're not already dashing.
@@ -241,8 +277,12 @@ public class Razorback
     {
     	boolean didDash = false;
     	
-        if (!state.get(DASH))
+        if ((!state.get(DASH)) && (!state.get(DIE)) && (dashes < 2))
         {
+        	// Increment dash counter. Only two allowed per jump/doublejump.
+        	if ((state.get(JUMP)) || (state.get(DOUBLEJUMP)))
+        		dashes++;
+        	
         	setXVelocity(dashXVelocity);
         	setYVelocity(0.0f);
         	world.setGravity(new Vector2(0.0f, 0.0f));
@@ -276,6 +316,14 @@ public class Razorback
             return true;
         else
             return false;
+    }
+    
+    /**
+     * 
+     */
+    public boolean isSlowing()
+    {
+    	return (this.getXVelocity() < lastXVelocity);
     }
 
     /**
@@ -313,7 +361,16 @@ public class Razorback
     {
     	return body.getPosition().y;
     }
-  
+
+    /**
+     * Methods to get and set X and Y position
+     */
+    public void setXPosition(float x)
+    {
+//    	return body.getPosition().x;
+    	body.setTransform(x, 0.0f, 0.0f);
+    }
+
 	public BitSet getState()
 	{
 		return state;
@@ -323,14 +380,26 @@ public class Razorback
 		state.set(i);
 	}
 	
+	public void setState(int i, boolean b)
+	{
+		state.set(i, b);
+	}
+	
+	public boolean isDashing()
+	{
+		return state.get(DASH);
+	}
+	
 	public boolean isDying()
 	{
 		return state.get(DIE);
 	}
+	
 	public boolean isDead()
 	{
 		return state.get(DEAD);
 	}
+	
 	class DashTimerTask extends TimerTask
 	{
 		public void run()
@@ -343,5 +412,14 @@ public class Razorback
 	public String toString()
 	{
 		return "RAZORBACK";
+	}
+
+	public void dispose()
+	{
+		walkSheet.dispose();
+		dashSheet.dispose();
+		deathSheet.dispose();
+		jumpSheet.dispose();
+		motorcycleTexture.dispose();
 	}
 }

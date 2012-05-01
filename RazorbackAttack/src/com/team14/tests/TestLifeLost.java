@@ -20,6 +20,11 @@ public class TestLifeLost {
 	 * should be lost and gameOver status assigned in about 10 seconds.
 	 * 
 	 * THIS WILL NEED TO BE CHANGED ONCE WE HAVE RANDOM PLATFORMS.
+	 * 
+	 * Updated: Now with random platforms, we have to wait a bit before
+	 * the razorback dies. Setting this to eleven seconds gives the
+	 * razorback time to reach the end of the platform, fall between
+	 * platforms, and go through the death animation.
 	 */
 	@Test
 	public void test() {
@@ -29,7 +34,7 @@ public class TestLifeLost {
 		int beginningLives = game.gameScreen.info.lives();
 		try 
 		{
-			Thread.sleep(10000); // Waiting six seconds for ultimate death...
+			Thread.sleep(11000); // Waiting eleven seconds for ultimate death...
 		} 
 		catch(InterruptedException e)
 		{
