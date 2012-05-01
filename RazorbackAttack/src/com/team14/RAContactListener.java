@@ -52,9 +52,7 @@ public class RAContactListener implements ContactListener
 			razorback = (Razorback) razorbackBody.getUserData();
 			if (!razorback.isSlowing())
 			{
-				razorback.setState(Razorback.RUNNING);
-				razorback.setState(Razorback.JUMP, false);
-				razorback.setState(Razorback.DOUBLEJUMP, false);
+				razorback.endJump();
 				if (razorback.isDashing())
 					razorback.setXVelocity(Razorback.dashXVelocity);
 				else if (razorback.isDying())

@@ -69,15 +69,11 @@ public class Platform
 		for (int i = 0; i < fixtureDef.length; i++)
 			if (fixtureDef[i] != null)
 				body.createFixture(fixtureDef[i]);
-		System.out.println("Obstacle position: " + (obstaclePos.x + xPos) + ", " + obstaclePos.y);
-		System.out.println("Platform position: " + xPos + ", " + yRandomized);
-		System.out.println("=============================================================");
 		if (obstaclePos.x != 0.0)
 			obstacle = new Obstacle(world, (obstaclePos.x + xPos), yPos + yRandomized - obstaclePos.y);
 
 		body.setUserData(this);
 	}
-	
 
 	public void render(SpriteBatch spriteBatch)
 	{

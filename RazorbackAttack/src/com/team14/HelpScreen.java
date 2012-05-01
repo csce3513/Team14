@@ -17,19 +17,24 @@ public class HelpScreen implements Screen
 	Game game;
 	Screen prevScreen; 
 	private Music music, oldMusic;
+	boolean paused;
 	
-	public HelpScreen(Game g, Screen s, Music m)
+	public HelpScreen(Game g, Screen s, Music m, boolean p)
 	{
 		game = g;
 		prevScreen = s;
 		oldMusic = m;
+		paused = p;
 	}
 
 	@Override
 	public void show()
 	{
-		batch = new SpriteBatch();  
-		helpTexture = new Texture(Gdx.files.internal("assets/HelpScreen.png"));
+		batch = new SpriteBatch();
+		if (paused)
+			helpTexture = new Texture(Gdx.files.internal("assets/PauseScreen.png"));
+		else
+			helpTexture = new Texture(Gdx.files.internal("assets/HelpScreen.png"));
         music = Gdx.audio.newMusic(Gdx.files.getFileHandle("assets/music/pause.mp3", FileType.Internal));
         if (music != null)
         {

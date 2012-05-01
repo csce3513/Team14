@@ -48,7 +48,8 @@ public class Razorback
     
 	/* Razorback states */
     private BitSet state; 
-
+    private int dashes = 0;
+    
 	public static final int RUNNING = 0;
 	public static final int JUMP = 1;
 	public static final int DOUBLEJUMP = 2;
@@ -182,6 +183,7 @@ public class Razorback
         }
         else if (state.get(DASH))
         {
+        	this.setYVelocity(0.0f);
         	if (info.motorcycleMode())
         		currentFrame = motorcycleTR;
         	else
@@ -256,6 +258,16 @@ public class Razorback
         return didJump;
     }
 
+    public void endJump()
+    {
+    	state.set(RUNNING);
+    	state.set(JUMP, false);
+    	state.set(DOUBLEJUMP, false);
+    	
+    	// Reset dash counter
+    	dashes = 0;
+    }
+    
     /**
      * dash(): Attempts to perform a dash. A dash is 0.5 seconds long.
      *         Ensure that we're not already dashing.
@@ -265,8 +277,12 @@ public class Razorback
     {
     	boolean didDash = false;
     	
-        if ((!state.get(DASH)) && (!state.get(DIE)))
+        if ((!state.get(DASH)) && (!state.get(DIE)) && (dashes < 2))
         {
+        	// Increment dash counter. Only two allowed per jump/doublejump.
+        	if ((state.get(JUMP)) || (state.get(DOUBLEJUMP)))
+        		dashes++;
+        	
         	setXVelocity(dashXVelocity);
         	setYVelocity(0.0f);
         	world.setGravity(new Vector2(0.0f, 0.0f));

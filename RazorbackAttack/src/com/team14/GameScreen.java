@@ -8,8 +8,11 @@ import com.badlogic.gdx.Files.FileType;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL10;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.stbtt.TrueTypeFontFactory;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
 
@@ -21,9 +24,7 @@ public class GameScreen implements Screen, InputProcessor
 	/* The libgdx SpriteBatch -- used to optimize sprite drawing. */
 	private SpriteBatch worldBatch;
 
-	/**
-	 * The libgdx SpriteBatch for the heads up display (score+lives)
-	 */
+	/* The libgdx SpriteBatch for the heads up display (score+lives) */
 	private SpriteBatch hudBatch;
 
 	/**
@@ -56,14 +57,17 @@ public class GameScreen implements Screen, InputProcessor
 	private Music dashSound;
 	private Music deathSound;
 	private Music motorSound;
+	private Texture iconTexture;
+	private TextureRegion iconRegion1, iconRegion2;
 	private float lastXpos = 0.0f; // for score tracking
-	
+
 	/**
 	 * The camera responsible for showing the score and lives above the acutal game
 	 */
 	private HUDCamera hudCamera;
 	private BitmapFont font;
-	
+	public static final String FONT_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789][_!$%#@|\\/?-+=()*&.;,{}\"´`'<>";
+
 	public GameScreen(Game g, GameInfo i, Music m)
 	{
 		info = i;
@@ -139,9 +143,20 @@ public class GameScreen implements Screen, InputProcessor
 		 */
 		updateHUD();
 		hudBatch.begin();
-		CharSequence str = "Lives: " + info.lives() +  "  Score: " + Integer.toString((int) getScore()) + ", FPS: " + Gdx.graphics.getFramesPerSecond();
+		for (int i = 0; i <= GameInfo.MAXLIVES; i++)
+		{
+			if (info.life() <= i)
+				hudBatch.draw(iconRegion1, 32 + (i * 64), 550);
+			else
+				hudBatch.draw(iconRegion2, 32 + (i * 64), 550);
+		}
+		
+		CharSequence str = "" + getScore();
+		font.setScale(0.2f);
 		font.setColor(1.0f, 1.0f, 1.0f, 1.0f);
-		font.draw(hudBatch, str, 50, 550);
+		font.draw(hudBatch, str, 350, 550);
+		str = "[X] PAUSE";
+		font.draw(hudBatch, str, 580, 550);
 		hudBatch.end();
 		
 		/**
@@ -259,6 +274,11 @@ public class GameScreen implements Screen, InputProcessor
 	        motorSound.setLooping(true);
 	        motorSound.setVolume(0.9f);
 
+	        iconTexture = new Texture(Gdx.files.internal("assets/icons.png"));
+	        iconRegion1 = new TextureRegion(iconTexture, 0, 0, 64, 32);
+	        iconRegion2 = new TextureRegion(iconTexture, 64, 0, 64, 32);
+	        
+			font = TrueTypeFontFactory.createBitmapFont(Gdx.files.internal("assets/dlxfont.ttf"), FONT_CHARACTERS, 7.5f, 7.5f, 1.0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 			initialized = true;
 		}
 		
@@ -316,7 +336,7 @@ public class GameScreen implements Screen, InputProcessor
 			case (Keys.X):
 				// For now, summons a new HelpScreen
 				// TODO: Create an actual PauseScreen class+image
-				game.setScreen(new HelpScreen(game, this, music));
+				game.setScreen(new HelpScreen(game, this, music, true));
 				break;
 			default:
 				down = false;

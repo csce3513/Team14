@@ -22,7 +22,7 @@ public class LifeLostScreen implements Screen
 	Game game;
 	GameInfo info;
 	Music music;
-	float scale = 0.350f;
+	float scale = 0.480f;
 	int multiplier = 1;
 	private boolean didShow = false; // For testing.
 	BitmapFont font;
@@ -41,7 +41,7 @@ public class LifeLostScreen implements Screen
 	{  
 		batch = new SpriteBatch();  
 		splashTexture = new Texture(Gdx.files.internal("assets/EndLife.png"));
-		font = TrueTypeFontFactory.createBitmapFont(Gdx.files.internal("assets/StarForce.ttf"), FONT_CHARACTERS, 7.5f, 7.5f, 1.0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		font = TrueTypeFontFactory.createBitmapFont(Gdx.files.internal("assets/dlxfont.ttf"), FONT_CHARACTERS, 7.5f, 7.5f, 1.0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		font.setScale(.4f);
 		didShow = true;
 		gameScreen = null;
@@ -53,13 +53,15 @@ public class LifeLostScreen implements Screen
       
 	public void render (float delta)
 	{
+		CharSequence str = "";
+		
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT); // This cryptic line clears the screen.  
 
 		int R = (int) (Math.random( )*256);
 		int G = (int) (Math.random( )*256);
 		int B = (int) (Math.random( )*256);
 
-		if ((scale >= .400) || (scale <= .300))
+		if ((scale >= .500) || (scale <= .460))
 		{
 			multiplier = -1 * multiplier;
 		}
@@ -69,7 +71,7 @@ public class LifeLostScreen implements Screen
 		batch.draw(splashTexture, 0, 0);  
 		for (int life = 0; life < info.life(); life++)
 		{
-			CharSequence str= "" + info.getScore(life);
+			str = "" + info.getScore(life);
 			if (info.getScore(life) != -1)
 			{
 				if (life == info.life() - 1)
@@ -80,9 +82,9 @@ public class LifeLostScreen implements Screen
 				else
 				{
 					font.setColor(Color.WHITE);
-					font.setScale(0.3f);
+					font.setScale(0.460f);
 				}
-				font.draw(batch, str, 150, 550-(life*40));
+				font.draw(batch, str, 515, 537 - (life * 48));
 			}
 		}
 		batch.end();
